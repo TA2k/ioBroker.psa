@@ -32,13 +32,14 @@ class Psa extends utils.Adapter {
 
         this.extractKeys = extractKeys;
         this.idArray = [];
-
+        this.clientId = "b3e8ec8a-2a64-438e-a8dc-846ec566462a";
+        this.clientId = "1eebc2d5-5df3-459b-a624-20abfcf82530";
         this.brands = {
-            peugot: { brand: "peugot.com", real: "clientsB2CPeugeot" },
-            citroen: { brand: "citroen.com", real: "clientsB2CCitroen" },
-            driveds: { brand: "driveds.com", real: "clientsB2CDS" },
-            opel: { brand: "opel.com", real: "clientsB2COpel" },
-            vauxhall: { brand: "vauxhall.co.uk", real: "clientsB2CVauxhall" },
+            peugot: { brand: "peugeot.com", realm: "clientsB2CPeugeot" },
+            citroen: { brand: "citroen.com", realm: "clientsB2CCitroen" },
+            driveds: { brand: "driveds.com", realm: "clientsB2CDS" },
+            opel: { brand: "opel.com", realm: "clientsB2COpel" },
+            vauxhall: { brand: "vauxhall.co.uk", realm: "clientsB2CVauxhall" },
         };
         this.subscribeStates("*");
         this.login()
@@ -83,11 +84,16 @@ class Psa extends utils.Adapter {
                 url: "https://idpcvs." + this.brands[this.config.type].brand + "/am/oauth2/access_token",
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
-                    Authorization: "Basic YjNlOGVjOGEtMmE2NC00MzhlLWE4ZGMtODQ2ZWM1NjY0NjJhOkc0eU82cFczdko0eEcxZFUybVA4eFg0aEo1aVI0eUwwYlM4d1E2Z080aVk3aUc2dVk0",
+                    Authorization: "Basic MWVlYmMyZDUtNWRmMy00NTliLWE2MjQtMjBhYmZjZjgyNTMwOlQ1dFA3aVMwY084c0MwbEEyaUUyYVI3Z0s2dUU1ckYzbEo4cEMzbk8xcFI3dEw4dlUx", //YjNlOGVjOGEtMmE2NC00MzhlLWE4ZGMtODQ2ZWM1NjY0NjJhOkc0eU82cFczdko0eEcxZFUybVA4eFg0aEo1aVI0eUwwYlM4d1E2Z080aVk3aUc2dVk0",
                 },
-                data: "realm=" + this.brands[this.config.type].realm + "&grant_type=password&password=" + this.password + "&username=" + this.user + "&scope=profile%20openid",
+                data: "realm=" + this.brands[this.config.type].realm + "&grant_type=password&password=" + this.config.password + "&username=" + this.config.user + "&scope=profile%20openid",
             })
                 .then((response) => {
+                    if (!response.data) {
+                        this.log.error("Login failed maybe incorrect login information");
+                        reject();
+                        return;
+                    }
                     this.log.debug(JSON.stringify(response.data));
                     this.aToken = response.data.access_token;
                     this.rToken = response.data.refresh_token;
@@ -133,9 +139,11 @@ class Psa extends utils.Adapter {
         return new Promise((resolve, reject) => {
             axios({
                 method: "get",
-                url: "https://api.groupe-psa.com/connectedcar/v4/user",
+                url: "https://api.groupe-psa.com/connectedcar/v4/user?client_id=" + this.clientId,
                 headers: {
                     Authorization: "Bearer " + this.aToken,
+                    Accept: "application/hal+json",
+                    "x-introspect-realm": this.brands[this.config.type].realm,
                 },
             })
                 .then((response) => {
@@ -143,7 +151,7 @@ class Psa extends utils.Adapter {
                     this.extractKeys(this, ".user", response.data);
                     response.data["_embedded"].Vehicles.forEach((element) => {
                         this.idArray.push(element.id);
-                        this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id, element.id + ".details").catch(() => {
+                        this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "?client_id=" + this.clientId, element.id + ".details").catch(() => {
                             this.log.error("Get Details failed");
                         });
                     });
@@ -161,7 +169,7 @@ class Psa extends utils.Adapter {
         return new Promise((resolve, reject) => {
             axios({
                 method: "get",
-                url: url,
+                url: url + "?client_id=" + this.clientId,
                 headers: {
                     Authorization: "Bearer " + this.aToken,
                 },
