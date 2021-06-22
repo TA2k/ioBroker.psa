@@ -80,7 +80,7 @@ class Psa extends utils.Adapter {
         return new Promise((resolve, reject) => {
             axios({
                 method: "post",
-                url: "https://idpcvs." + this.brands[this.config.type].brand + ".com/am/oauth2/access_token",
+                url: "https://idpcvs." + this.brands[this.config.type].brand + "/am/oauth2/access_token",
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
                     Authorization: "Basic YjNlOGVjOGEtMmE2NC00MzhlLWE4ZGMtODQ2ZWM1NjY0NjJhOkc0eU82cFczdko0eEcxZFUybVA4eFg0aEo1aVI0eUwwYlM4d1E2Z080aVk3aUc2dVk0",
@@ -99,7 +99,7 @@ class Psa extends utils.Adapter {
                 .catch((error) => {
                     this.log.error(error);
                     this.log.error("Login failed");
-                    this.log.error(JSON.stringify(error.response.data));
+                    error.response && this.log.error(JSON.stringify(error.response.data));
                     reject();
                 });
         });
@@ -124,7 +124,7 @@ class Psa extends utils.Adapter {
                 .catch((error) => {
                     this.log.error(error);
                     this.log.error("Refreshtoken failed");
-                    this.log.error(JSON.stringify(error.response.data));
+                    error.response && this.log.error(JSON.stringify(error.response.data));
                     reject();
                 });
         });
@@ -152,7 +152,7 @@ class Psa extends utils.Adapter {
                 .catch((error) => {
                     this.log.error(error);
                     this.log.error("Get Vehicles failed");
-                    this.log.error(JSON.stringify(error.response.data));
+                    error.response && this.log.error(JSON.stringify(error.response.data));
                     reject();
                 });
         });
@@ -174,7 +174,7 @@ class Psa extends utils.Adapter {
                 .catch((error) => {
                     this.log.error(error);
                     this.log.error("Get " + path + " failed");
-                    this.log.error(JSON.stringify(error.response.data));
+                    error.response && this.log.error(JSON.stringify(error.response.data));
                     reject();
                 });
         });
