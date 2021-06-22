@@ -1,0 +1,87 @@
+{
+    "common": {
+        "name": "psa",
+        "version": "0.0.1",
+        "news": {
+            "0.0.1": {
+                "en": "initial release",
+                "de": "Erstveröffentlichung",
+                "ru": "Начальная версия",
+                "pt": "lançamento inicial",
+                "nl": "Eerste uitgave",
+                "fr": "Première version",
+                "it": "Versione iniziale",
+                "es": "Versión inicial",
+                "pl": "Pierwsze wydanie",
+                "zh-cn": "首次出版"
+            }
+        },
+        "titleLang": {
+            "en": "PSA",
+            "de": "PSA",
+            "ru": "PSA",
+            "pt": "PSA",
+            "nl": "PSA",
+            "fr": "Message d'intérêt public",
+            "it": "PSA",
+            "es": "PSA",
+            "pl": "PSA",
+            "zh-cn": "PSA"
+        },
+        "desc": {
+            "en": "PSA Adapter for Peugot, Citroen, DS, Opel, Vauxhall",
+            "de": "PSA-Adapter für Peugeot, Citroen, DS, Opel, Vauxhall",
+            "ru": "Адаптер PSA для Peugot, Citroen, DS, Opel, Vauxhall",
+            "pt": "Adaptador PSA para Peugot, Citroen, DS, Opel, Vauxhall",
+            "nl": "PSA Adapter voor Peugot, Citroen, DS, Opel, Vauxhall",
+            "fr": "Adaptateur PSA pour Peugeot, Citroën, DS, Opel, Vauxhall",
+            "it": "Adattatore PSA per Peugot, Citroen, DS, Opel, Vauxhall",
+            "es": "Adaptador PSA para Peugot, Citroen, DS, Opel, Vauxhall",
+            "pl": "Adapter PSA do Peugot, Citroen, DS, Opel, Vauxhall",
+            "zh-cn": "标致、雪铁龙、DS、欧宝、沃克斯豪尔的 PSA 适配器"
+        },
+        "authors": [
+            "TA2k <tombox2020@gmail.com>"
+        ],
+        "keywords": [
+            "PSA",
+            "Peugot",
+            "Citroen",
+            "DS",
+            "Opel",
+            "Vauxhall"
+        ],
+        "license": "MIT",
+        "platform": "Javascript/Node.js",
+        "icon": "psa.png",
+        "enabled": true,
+        "extIcon": "https://raw.githubusercontent.com/TA2k/ioBroker.psa/master/admin/psa.png",
+        "readme": "https://github.com/TA2k/ioBroker.psa/blob/master/README.md",
+        "loglevel": "info",
+        "mode": "daemon",
+        "type": "vehicle",
+        "compact": true,
+        "connectionType": "cloud",
+        "dataSource": "poll",
+        "materialize": true,
+        "dependencies": [
+            {
+                "js-controller": ">=2.0.0"
+            }
+        ]
+    },
+    "encryptedNative": [
+        "password"
+    ],
+    "protectedNative": [
+        "password"
+    ],
+    "native": {
+        "user": "",
+        "password": "",
+        "type": "",
+        "interval": 5
+    },
+    "objects": [],
+    "instanceObjects": []
+}
