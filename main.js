@@ -52,16 +52,10 @@ class Psa extends utils.Adapter {
                             this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/status", element.vin + ".status").catch(() => {
                                 this.log.error("Get device status failed");
                             });
-                            this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/lastPosition", element.vin + ".lastPosition").catch(() => {
-                                this.log.error("Get device status failed");
-                            });
                         });
                         this.appUpdateInterval = setInterval(() => {
                             this.idArray.forEach((element) => {
                                 this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/status", element.vin + ".status").catch(() => {
-                                    this.log.error("Get device status failed");
-                                });
-                                this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/lastPosition", element.vin + ".lastPosition").catch(() => {
                                     this.log.error("Get device status failed");
                                 });
                             });
@@ -198,7 +192,7 @@ class Psa extends utils.Adapter {
             })
                 .then((response) => {
                     this.log.debug(JSON.stringify(response.data));
-                    this.extractKeys(this, "." + path, response.data);
+                    this.extractKeys(this, path, response.data);
                     resolve();
                 })
                 .catch((error) => {
