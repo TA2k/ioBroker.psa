@@ -49,19 +49,19 @@ class Psa extends utils.Adapter {
                 this.getVehicles()
                     .then(() => {
                         this.idArray.forEach((id) => {
-                            this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + id + "/status", id + "status").catch(() => {
+                            this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + id + "/status", id + ".status").catch(() => {
                                 this.log.error("Get device status failed");
                             });
-                            this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + id + "/lastPosition", id + "lastPosition").catch(() => {
+                            this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + id + "/lastPosition", id + ".lastPosition").catch(() => {
                                 this.log.error("Get device status failed");
                             });
                         });
                         this.appUpdateInterval = setInterval(() => {
                             this.idArray.forEach((id) => {
-                                this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + id + "/status", id + "status").catch(() => {
+                                this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + id + "/status", id + ".status").catch(() => {
                                     this.log.error("Get device status failed");
                                 });
-                                this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + id + "/lastPosition", id + "lastPosition").catch(() => {
+                                this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + id + "/lastPosition", id + ".lastPosition").catch(() => {
                                     this.log.error("Get device status failed");
                                 });
                             });
@@ -158,7 +158,7 @@ class Psa extends utils.Adapter {
                     this.extractKeys(this, ".user", response.data);
                     response.data["_embedded"].vehicles.forEach((element) => {
                         this.idArray.push(element.id);
-                        this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "?client_id=" + this.clientId, element.id + ".details").catch(() => {
+                        this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id, element.id + ".details").catch(() => {
                             this.log.error("Get Details failed");
                         });
                     });
@@ -176,7 +176,7 @@ class Psa extends utils.Adapter {
         return new Promise((resolve, reject) => {
             axios({
                 method: "get",
-                url: url + "?client_id=" + this.clientId,
+                url: url, //+ "?client_id=" + this.clientId,
                 headers: {
                     Authorization: "Bearer " + this.aToken,
                 },
