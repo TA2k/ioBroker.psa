@@ -186,11 +186,14 @@ class Psa extends utils.Adapter {
     }
     getRequest(url, path) {
         return new Promise((resolve, reject) => {
+            this.log.debug(url + "?client_id=" + this.clientId);
             axios({
                 method: "get",
-                url: url, //+ "?client_id=" + this.clientId,
+                url: url + "?client_id=" + this.clientId,
                 headers: {
                     Authorization: "Bearer " + this.aToken,
+                    Accept: "application/hal+json",
+                    "x-introspect-realm": this.brands[this.config.type].realm,
                 },
             })
                 .then((response) => {
