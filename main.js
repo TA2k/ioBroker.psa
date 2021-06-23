@@ -48,20 +48,20 @@ class Psa extends utils.Adapter {
                 this.log.info("Login successful");
                 this.getVehicles()
                     .then(() => {
-                        this.idArray.forEach((id) => {
-                            this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + id + "/status", id + ".status").catch(() => {
+                        this.idArray.forEach((element) => {
+                            this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/status", element.vin + ".status").catch(() => {
                                 this.log.error("Get device status failed");
                             });
-                            this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + id + "/lastPosition", id + ".lastPosition").catch(() => {
+                            this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/lastPosition", element.vin + ".lastPosition").catch(() => {
                                 this.log.error("Get device status failed");
                             });
                         });
                         this.appUpdateInterval = setInterval(() => {
-                            this.idArray.forEach((id) => {
-                                this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + id + "/status", id + ".status").catch(() => {
+                            this.idArray.forEach((element) => {
+                                this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/status", element.vin + ".status").catch(() => {
                                     this.log.error("Get device status failed");
                                 });
-                                this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + id + "/lastPosition", id + ".lastPosition").catch(() => {
+                                this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/lastPosition", element.vin + ".lastPosition").catch(() => {
                                     this.log.error("Get device status failed");
                                 });
                             });
@@ -155,10 +155,19 @@ class Psa extends utils.Adapter {
             })
                 .then((response) => {
                     this.log.debug(JSON.stringify(response.data));
-                    this.extractKeys(this, ".user", response.data);
-                    response.data["_embedded"].vehicles.forEach((element) => {
-                        this.idArray.push(element.id);
-                        this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id, element.id + ".details").catch(() => {
+                    this.extractKeys(this, "user", response.data);
+                    response.data["_embedded"].vehicles.forEach(async (element) => {
+                        this.idArray.push({ id: element.id, vin: element.vin });
+                        await this.setObjectNotExistsAsync(element.vin, {
+                            type: "device",
+                            common: {
+                                name: element.vin,
+                                role: "indicator",
+                            },
+                            native: {},
+                        });
+
+                        this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id, element.vin + ".details").catch(() => {
                             this.log.error("Get Details failed");
                         });
                     });
@@ -168,6 +177,9 @@ class Psa extends utils.Adapter {
                     this.log.error(error);
                     this.log.error("Get Vehicles failed");
                     error.response && this.log.error(JSON.stringify(error.response.data));
+                    if (error.response && error.response.data && error.response.data.code && error.response.data.code === 40410) {
+                        this.log.error("No compatible vehicles found. Maybe your vehicle is too old.");
+                    }
                     reject();
                 });
         });
