@@ -192,7 +192,7 @@ class Psa extends utils.Adapter {
             })
                 .then((response) => {
                     this.log.debug(JSON.stringify(response.data));
-                    this.extractKeys(this, path, response.data);
+                    this.extractKeys(this, path, response.data, "type");
                     resolve();
                 })
                 .catch((error) => {
