@@ -32,7 +32,6 @@ class Psa extends utils.Adapter {
 
         this.extractKeys = extractKeys;
         this.idArray = [];
-        this.clientId = "b3e8ec8a-2a64-438e-a8dc-846ec566462a";
         this.clientId = "1eebc2d5-5df3-459b-a624-20abfcf82530";
         this.brands = {
             peugot: { brand: "peugeot.com", realm: "clientsB2CPeugeot" },
@@ -78,7 +77,7 @@ class Psa extends utils.Adapter {
                 url: "https://idpcvs." + this.brands[this.config.type].brand + "/am/oauth2/access_token",
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
-                    Authorization: "Basic MWVlYmMyZDUtNWRmMy00NTliLWE2MjQtMjBhYmZjZjgyNTMwOlQ1dFA3aVMwY084c0MwbEEyaUUyYVI3Z0s2dUU1ckYzbEo4cEMzbk8xcFI3dEw4dlUx", //YjNlOGVjOGEtMmE2NC00MzhlLWE4ZGMtODQ2ZWM1NjY0NjJhOkc0eU82cFczdko0eEcxZFUybVA4eFg0aEo1aVI0eUwwYlM4d1E2Z080aVk3aUc2dVk0",
+                    Authorization: "Basic MWVlYmMyZDUtNWRmMy00NTliLWE2MjQtMjBhYmZjZjgyNTMwOlQ1dFA3aVMwY084c0MwbEEyaUUyYVI3Z0s2dUU1ckYzbEo4cEMzbk8xcFI3dEw4dlUx",
                 },
                 data:
                     "realm=" +
@@ -115,10 +114,10 @@ class Psa extends utils.Adapter {
         return new Promise((resolve, reject) => {
             axios({
                 method: "post",
-                url: "https://idpcvs." + this.brands[this.config.type].brand + ".com/am/oauth2/access_token",
+                url: "https://idpcvs." + this.brands[this.config.type].brand + "/am/oauth2/access_token",
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
-                    Authorization: "Basic YjNlOGVjOGEtMmE2NC00MzhlLWE4ZGMtODQ2ZWM1NjY0NjJhOkc0eU82cFczdko0eEcxZFUybVA4eFg0aEo1aVI0eUwwYlM4d1E2Z080aVk3aUc2dVk0",
+                    Authorization: "Basic MWVlYmMyZDUtNWRmMy00NTliLWE2MjQtMjBhYmZjZjgyNTMwOlQ1dFA3aVMwY084c0MwbEEyaUUyYVI3Z0s2dUU1ckYzbEo4cEMzbk8xcFI3dEw4dlUx",
                 },
                 data: "realm=" + this.brands[this.config.type].realm + "&grant_type=refresh_token&refresh_token=" + this.rToken,
             })
