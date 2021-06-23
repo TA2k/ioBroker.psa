@@ -86,7 +86,14 @@ class Psa extends utils.Adapter {
                     "Content-Type": "application/x-www-form-urlencoded",
                     Authorization: "Basic MWVlYmMyZDUtNWRmMy00NTliLWE2MjQtMjBhYmZjZjgyNTMwOlQ1dFA3aVMwY084c0MwbEEyaUUyYVI3Z0s2dUU1ckYzbEo4cEMzbk8xcFI3dEw4dlUx", //YjNlOGVjOGEtMmE2NC00MzhlLWE4ZGMtODQ2ZWM1NjY0NjJhOkc0eU82cFczdko0eEcxZFUybVA4eFg0aEo1aVI0eUwwYlM4d1E2Z080aVk3aUc2dVk0",
                 },
-                data: "realm=" + this.brands[this.config.type].realm + "&grant_type=password&password=" + this.config.password + "&username=" + this.config.user + "&scope=profile%20openid",
+                data:
+                    "realm=" +
+                    this.brands[this.config.type].realm +
+                    "&grant_type=password&password=" +
+                    encodeURIComponent(this.config.password) +
+                    "&username=" +
+                    encodeURIComponent(this.config.user) +
+                    "&scope=profile%20openid",
             })
                 .then((response) => {
                     if (!response.data) {
@@ -149,7 +156,7 @@ class Psa extends utils.Adapter {
                 .then((response) => {
                     this.log.debug(JSON.stringify(response.data));
                     this.extractKeys(this, ".user", response.data);
-                    response.data["_embedded"].Vehicles.forEach((element) => {
+                    response.data["_embedded"].vehicles.forEach((element) => {
                         this.idArray.push(element.id);
                         this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "?client_id=" + this.clientId, element.id + ".details").catch(() => {
                             this.log.error("Get Details failed");
