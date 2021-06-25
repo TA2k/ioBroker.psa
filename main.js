@@ -70,7 +70,10 @@ class Psa extends utils.Adapter {
                 cgu: "1624645389",
             },
         };
-
+        if (!this.config.type) {
+            this.log.warn("Please select type in settings");
+            return;
+        }
         this.clientId = this.brands[this.config.type].clientId;
         this.subscribeStates("*");
 
