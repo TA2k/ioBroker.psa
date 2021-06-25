@@ -118,9 +118,10 @@ class Psa extends utils.Adapter {
             const loginData = { siteCode: "AP_DE_ESP", culture: "de-DE", action: "authenticate", fields: { USR_EMAIL: { value: this.config.user }, USR_PASSWORD: { value: this.config.password } } };
             axios({
                 method: "get",
-                url: "https://id-dcr.peugeot.com/mobile-services/GetAccessToken?jsonRequest=" + JSON.stringify(loginData),
+                url: "https://id-dcr.peugeot.com/mobile-services/GetAccessToken?jsonRequest=" + encodeURIComponent(JSON.stringify(loginData)),
                 headers: {
                     Accept: "application/json",
+                    "User-Agent": "okhttp/2.3.0",
                 },
             })
                 .then((response) => {
@@ -130,6 +131,11 @@ class Psa extends utils.Adapter {
                         return;
                     }
                     this.log.debug(JSON.stringify(response.data));
+                    if (!response.data.accessToken) {
+                        this.log.warn(JSON.stringify(response.data));
+                        this.log.warn("No Token received for old api ");
+                        return;
+                    }
                     this.oldAToken = response.data.accessToken;
                     var data = JSON.stringify({ site_code: "AP_DE_ESP", ticket: this.oldAToken });
                     axios({
