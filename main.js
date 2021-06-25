@@ -32,14 +32,46 @@ class Psa extends utils.Adapter {
 
         this.extractKeys = extractKeys;
         this.idArray = [];
-        this.clientId = "1eebc2d5-5df3-459b-a624-20abfcf82530";
         this.brands = {
-            peugot: { brand: "peugeot.com", realm: "clientsB2CPeugeot" },
-            citroen: { brand: "citroen.com", realm: "clientsB2CCitroen" },
-            driveds: { brand: "driveds.com", realm: "clientsB2CDS" },
-            opel: { brand: "opel.com", realm: "clientsB2COpel" },
-            vauxhall: { brand: "vauxhall.co.uk", realm: "clientsB2CVauxhall" },
+            peugot: {
+                brand: "peugeot.com",
+                realm: "clientsB2CPeugeot",
+                clientId: "1eebc2d5-5df3-459b-a624-20abfcf82530",
+                basic: "MWVlYmMyZDUtNWRmMy00NTliLWE2MjQtMjBhYmZjZjgyNTMwOlQ1dFA3aVMwY084c0MwbEEyaUUyYVI3Z0s2dUU1ckYzbEo4cEMzbk8xcFI3dEw4dlUx",
+                siteCode: "AP_DE_ESP",
+                url: "ap-mym.servicesgp.mpsa.com",
+                cgu: "1624615179",
+            },
+            citroen: {
+                brand: "citroen.com",
+                realm: "clientsB2CCitroen",
+                clientId: "5364defc-80e6-447b-bec6-4af8d1542cae",
+                basic: "NTM2NGRlZmMtODBlNi00NDdiLWJlYzYtNGFmOGQxNTQyY2FlOmlFMGNEOGJCMHlKMGRTNnJPM25OMWhJMndVN3VBNXhSNGdQN2xENnZNMG9IMG5TOGRO",
+                siteCode: "AC_DE_ESP",
+                url: "ac-mym.servicesgp.mpsa.com",
+                cgu: "1624645960",
+            },
+            driveds: {
+                brand: "driveds.com",
+                realm: "clientsB2CDS",
+                clientId: "cbf74ee7-a303-4c3d-aba3-29f5994e2dfa",
+                basic: "Y2JmNzRlZTctYTMwMy00YzNkLWFiYTMtMjlmNTk5NGUyZGZhOlg2YkU2eVEzdEgxY0c1b0E2YVc0ZlM2aEswY1IwYUs1eU4yd0U0aFA4dkw4b1c1Z1Uz",
+                siteCode: "DS_DE_ESP",
+                url: "ds-mym.servicesgp.mpsa.com",
+                cgu: "1624646613",
+            },
+            opel: {
+                brand: "opel.com",
+                realm: "clientsB2COpel",
+                clientId: "07364655-93cb-4194-8158-6b035ac2c24c",
+                basic: "MDczNjQ2NTUtOTNjYi00MTk0LTgxNTgtNmIwMzVhYzJjMjRjOkYya0s3bEM1a0Y1cU43dE0wd1Q4a0UzY1cxZFAwd0M1cEk2dkMwc1E1aVA1Y044Y0o4",
+                siteCode: "OP_DE_ESP",
+                url: "op-mym.servicesgp.mpsa.com",
+                cgu: "1624645389",
+            },
         };
+
+        this.clientId = this.brands[this.config.type].clientId;
         this.subscribeStates("*");
 
         this.login()
@@ -69,7 +101,9 @@ class Psa extends utils.Adapter {
                 this.log.error("Login failed");
                 this.setState("info.connection", false, true);
             });
-        this.receiveOldApi();
+        this.receiveOldApi().catch((error) => {
+            this.log.warn("OldAPI Login failed");
+        });
     }
 
     login() {
@@ -79,7 +113,7 @@ class Psa extends utils.Adapter {
                 url: "https://idpcvs." + this.brands[this.config.type].brand + "/am/oauth2/access_token",
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
-                    Authorization: "Basic MWVlYmMyZDUtNWRmMy00NTliLWE2MjQtMjBhYmZjZjgyNTMwOlQ1dFA3aVMwY084c0MwbEEyaUUyYVI3Z0s2dUU1ckYzbEo4cEMzbk8xcFI3dEw4dlUx",
+                    Authorization: "Basic " + this.brands[this.config.type].basic,
                 },
                 data:
                     "realm=" +
@@ -100,7 +134,9 @@ class Psa extends utils.Adapter {
                     this.aToken = response.data.access_token;
                     this.rToken = response.data.refresh_token;
                     this.refreshTokenInterval = setInterval(() => {
-                        this.refreshToken();
+                        this.refreshToken().catch((error) => {
+                            this.log.error("Refresh token failed");
+                        });
                     }, 3599 * 1000);
                     resolve();
                 })
@@ -115,16 +151,21 @@ class Psa extends utils.Adapter {
 
     receiveOldApi() {
         return new Promise((resolve, reject) => {
-            const loginData = { siteCode: "AP_DE_ESP", culture: "de-DE", action: "authenticate", fields: { USR_EMAIL: { value: this.config.user }, USR_PASSWORD: { value: this.config.password } } };
+            const loginData = {
+                siteCode: this.brands[this.config.type].siteCode,
+                culture: "de-DE",
+                action: "authenticate",
+                fields: { USR_EMAIL: { value: this.config.user }, USR_PASSWORD: { value: this.config.password } },
+            };
             axios({
                 method: "get",
-                url: "https://id-dcr.peugeot.com/mobile-services/GetAccessToken?jsonRequest=" + encodeURIComponent(JSON.stringify(loginData)),
+                url: "https://id-dcr." + this.brands[this.config.type].brand + "/mobile-services/GetAccessToken?jsonRequest=" + encodeURIComponent(JSON.stringify(loginData)),
                 headers: {
                     Accept: "application/json",
                     "User-Agent": "okhttp/2.3.0",
                 },
             })
-                .then((response) => {
+                .then(async (response) => {
                     if (!response.data) {
                         this.log.error("Login old api failed maybe incorrect login information");
                         reject();
@@ -137,10 +178,19 @@ class Psa extends utils.Adapter {
                         return;
                     }
                     this.oldAToken = response.data.accessToken;
-                    var data = JSON.stringify({ site_code: "AP_DE_ESP", ticket: this.oldAToken });
+                    await this.setObjectNotExistsAsync("oldApi", {
+                        type: "device",
+                        common: {
+                            name: "old API, only mileage available",
+                            role: "indicator",
+                        },
+                        native: {},
+                    });
+                    var data = JSON.stringify({ site_code: this.brands[this.config.type].siteCode, ticket: this.oldAToken });
                     axios({
                         method: "post",
-                        url: "https://ap-mym.servicesgp.mpsa.com/api/v1/user?culture=de_DE&width=1080&cgu=1624615179&v=1.23.4",
+
+                        url: "https://" + this.brands[this.config.type].url + "/api/v1/user?culture=de_DE&width=1080&cgu=" + this.brands[this.config.type].cgu + "&v=1.23.4",
                         headers: {
                             "source-agent": "App-Android",
                             version: "1.23.4",
@@ -155,7 +205,9 @@ class Psa extends utils.Adapter {
                             if (response.data.success) {
                                 this.extractKeys(this, "oldApi", response.data.success);
                                 this.oldApiUpdateInterval = setInterval(() => {
-                                    this.receiveOldApi();
+                                    this.receiveOldApi().catch((error) => {
+                                        this.log.warn("OldAPI Login failed");
+                                    });
                                 }, this.config.interval * 60 * 1000);
                             }
                             resolve();

@@ -1,8 +1,11 @@
 {
     "common": {
         "name": "psa",
-        "version": "0.0.4",
+        "version": "0.0.5",
         "news": {
+            "0.0.5": {
+                "en": "fix citroen login"
+            },
             "0.0.4": {
                 "en": "add old api"
             },
