@@ -1,8 +1,11 @@
 {
     "common": {
         "name": "psa",
-        "version": "0.0.2",
+        "version": "0.0.3",
         "news": {
+            "0.0.3": {
+                "en": "add old api"
+            },
             "0.0.2": {
                 "en": "initial release",
                 "de": "Erstveröffentlichung",
