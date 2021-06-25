@@ -1,6 +1,6 @@
 {
   "name": "iobroker.psa",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "PSA Adapter for Peugot, Citroen, DS, Opel, Vauxhall",
   "author": {
     "name": "TA2k",
