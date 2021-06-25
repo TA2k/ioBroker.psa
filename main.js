@@ -41,6 +41,7 @@ class Psa extends utils.Adapter {
             vauxhall: { brand: "vauxhall.co.uk", realm: "clientsB2CVauxhall" },
         };
         this.subscribeStates("*");
+
         this.login()
             .then(() => {
                 this.setState("info.connection", true, true);
@@ -68,6 +69,7 @@ class Psa extends utils.Adapter {
                 this.log.error("Login failed");
                 this.setState("info.connection", false, true);
             });
+        this.receiveOldApi();
     }
 
     login() {
@@ -106,6 +108,62 @@ class Psa extends utils.Adapter {
                     this.log.error(error);
                     this.log.error("Login failed");
                     error.response && this.log.error(JSON.stringify(error.response.data));
+                    reject();
+                });
+        });
+    }
+
+    receiveOldApi() {
+        return new Promise((resolve, reject) => {
+            const loginData = { siteCode: "AP_DE_ESP", culture: "de-DE", action: "authenticate", fields: { USR_EMAIL: { value: this.config.user }, USR_PASSWORD: { value: this.config.password } } };
+            axios({
+                method: "get",
+                url: "https://id-dcr.peugeot.com/mobile-services/GetAccessToken?jsonRequest=" + JSON.stringify(loginData),
+                headers: {
+                    Accept: "application/json",
+                },
+            })
+                .then((response) => {
+                    if (!response.data) {
+                        this.log.error("Login old api failed maybe incorrect login information");
+                        reject();
+                        return;
+                    }
+                    this.log.debug(JSON.stringify(response.data));
+                    this.oldAToken = response.data.accessToken;
+                    var data = JSON.stringify({ site_code: "AP_DE_ESP", ticket: this.oldAToken });
+                    axios({
+                        method: "post",
+                        url: "https://ap-mym.servicesgp.mpsa.com/api/v1/user?culture=de_DE&width=1080&cgu=1624615179&v=1.23.4",
+                        headers: {
+                            "source-agent": "App-Android",
+                            version: "1.23.4",
+                            token: this.oldAToken,
+                            "content-type": "application/json;charset=UTF-8",
+                            "user-agent": "okhttp/3.2.0",
+                        },
+                        data: data,
+                    })
+                        .then((response) => {
+                            this.log.debug(JSON.stringify(response.data));
+                            if (response.data.success) {
+                                this.extractKeys(this, "oldApi", response.data.success);
+                                this.oldApiUpdateInterval = setInterval(() => {
+                                    this.receiveOldApi();
+                                }, this.config.interval * 60 * 1000);
+                            }
+                            resolve();
+                        })
+                        .catch((error) => {
+                            this.log.warn(error);
+                            this.log.warn("receive old api failed");
+                            error.response && this.log.warn(JSON.stringify(error.response.data));
+                        });
+                })
+                .catch((error) => {
+                    this.log.warn(error);
+                    this.log.warn("Login old api failed");
+                    error.response && this.log.warn(JSON.stringify(error.response.data));
                     reject();
                 });
         });
@@ -209,6 +267,7 @@ class Psa extends utils.Adapter {
      */
     onUnload(callback) {
         this.clearInterval(this.appUpdateInterval);
+        this.clearInterval(this.oldApiUpdateInterval);
         this.clearInterval(this.refreshTokenInterval);
         try {
             callback();
