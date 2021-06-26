@@ -13,7 +13,7 @@
 
 ## psa adapter for ioBroker
 
-PSA Adapter for Peugot, Citroen, DS, Opel, Vauxhall
+PSA Adapter for Peugot, Citroen, DS, Opel
 
 ## Changelog
 
