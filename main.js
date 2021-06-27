@@ -207,6 +207,7 @@ class Psa extends utils.Adapter {
                             this.log.debug(JSON.stringify(response.data));
                             if (response.data.success) {
                                 this.extractKeys(this, "oldApi", response.data.success);
+                                this.clearInterval(this.oldApiUpdateInterval);
                                 this.oldApiUpdateInterval = setInterval(() => {
                                     this.receiveOldApi().catch((error) => {
                                         this.log.warn("OldAPI Login failed");
