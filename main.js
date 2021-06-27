@@ -104,9 +104,17 @@ class Psa extends utils.Adapter {
                 this.log.error("Login failed");
                 this.setState("info.connection", false, true);
             });
-        this.receiveOldApi().catch((error) => {
-            this.log.warn("OldAPI Login failed");
-        });
+        this.receiveOldApi()
+            .then(() => {
+                this.oldApiUpdateInterval = setInterval(() => {
+                    this.receiveOldApi().catch((error) => {
+                        this.log.warn("OldAPI Login failed");
+                    });
+                }, this.config.interval * 60 * 1000);
+            })
+            .catch((error) => {
+                this.log.warn("OldAPI Login failed");
+            });
     }
 
     login() {
@@ -207,12 +215,6 @@ class Psa extends utils.Adapter {
                             this.log.debug(JSON.stringify(response.data));
                             if (response.data.success) {
                                 this.extractKeys(this, "oldApi", response.data.success);
-                                this.clearInterval(this.oldApiUpdateInterval);
-                                this.oldApiUpdateInterval = setInterval(() => {
-                                    this.receiveOldApi().catch((error) => {
-                                        this.log.warn("OldAPI Login failed");
-                                    });
-                                }, this.config.interval * 60 * 1000);
                             }
                             resolve();
                         })
