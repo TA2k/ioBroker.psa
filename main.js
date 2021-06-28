@@ -148,7 +148,7 @@ class Psa extends utils.Adapter {
                         this.refreshToken().catch((error) => {
                             this.log.error("Refresh token failed");
                         });
-                    }, 3599 * 1000);
+                    }, 60 * 60 * 1000);
                     resolve();
                 })
                 .catch((error) => {
@@ -317,6 +317,19 @@ class Psa extends utils.Adapter {
                     resolve();
                 })
                 .catch((error) => {
+                    if (error.response.status === 401) {
+                        this.log.info("Token expired. Try to refresh token");
+                        this.refreshToken()
+                            .then(() => {
+                                resolve();
+                            })
+                            .catch((error) => {
+                                this.log.error("Refreshtoken failed");
+                                reject();
+                            });
+
+                        return;
+                    }
                     this.log.error(error);
                     this.log.error("Get " + path + " failed");
                     error.response && this.log.error(JSON.stringify(error.response.data));
