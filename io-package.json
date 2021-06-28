@@ -4,15 +4,6 @@
         "version": "0.0.6",
         "news": {
             "0.0.6": {
-                "en": "fix old Api login"
-            },
-            "0.0.5": {
-                "en": "fix citroen login"
-            },
-            "0.0.4": {
-                "en": "add old api"
-            },
-            "0.0.2": {
                 "en": "initial release",
                 "de": "Erstveröffentlichung",
                 "ru": "Начальная версия",
@@ -94,6 +85,14 @@
     },
     "objects": [],
     "instanceObjects": [
+        {
+            "_id": "info",
+            "type": "channel",
+            "common": {
+                "name": "Information"
+            },
+            "native": {}
+        },
         {
             "_id": "info.connection",
             "type": "state",

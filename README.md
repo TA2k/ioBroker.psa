@@ -16,9 +16,8 @@
 PSA Adapter for Peugot, Citroen, DS, Opel
 
 ## Changelog
-### **WORK IN PROGRESS**
 
-Initial release
+0.0.6 Initial release
 
 ## License
 

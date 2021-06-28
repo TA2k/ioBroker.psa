@@ -74,8 +74,12 @@ class Psa extends utils.Adapter {
             this.log.warn("Please select type in settings");
             return;
         }
+
+        if (this.config.interval < 0.5) {
+            this.log.info("Set interval to minimum 0.5");
+            this.config.interval = 0.5;
+        }
         this.clientId = this.brands[this.config.type].clientId;
-        this.subscribeStates("*");
 
         this.login()
             .then(() => {
@@ -197,7 +201,7 @@ class Psa extends utils.Adapter {
                         },
                         native: {},
                     });
-                    var data = JSON.stringify({ site_code: this.brands[this.config.type].siteCode, ticket: this.oldAToken });
+                    const data = JSON.stringify({ site_code: this.brands[this.config.type].siteCode, ticket: this.oldAToken });
                     axios({
                         method: "post",
 
@@ -350,19 +354,6 @@ class Psa extends utils.Adapter {
             callback();
         } catch (e) {
             callback();
-        }
-    }
-
-    /**
-     * Is called if a subscribed state changes
-     * @param {string} id
-     * @param {ioBroker.State | null | undefined} state
-     */
-    onStateChange(id, state) {
-        if (state) {
-            // The state was changed
-        } else {
-            // The state was deleted
         }
     }
 }
