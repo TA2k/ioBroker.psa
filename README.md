@@ -16,7 +16,7 @@
 PSA Adapter for Peugot, Citroen, DS, Opel
 
 ## Changelog
-### **WORK IN PROGRESS**
+### 0.0.7 (2021-06-29)
 
 Initial release
 
