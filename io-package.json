@@ -1,8 +1,11 @@
 {
     "common": {
         "name": "psa",
-        "version": "0.0.5",
+        "version": "0.0.6",
         "news": {
+            "0.0.6": {
+                "en": "fix old Api login"
+            },
             "0.0.5": {
                 "en": "fix citroen login"
             },
@@ -73,7 +76,7 @@
         "materialize": true,
         "dependencies": [
             {
-                "js-controller": ">=2.0.0"
+                "js-controller": ">=3.0.0"
             }
         ]
     },
