@@ -8,6 +8,8 @@
 // you need to create an adapter
 const utils = require("@iobroker/adapter-core");
 const axios = require("axios");
+const https = require("https");
+const fs = require("fs");
 const { extractKeys } = require("./lib/extractKeys");
 
 class Psa extends utils.Adapter {
@@ -39,7 +41,7 @@ class Psa extends utils.Adapter {
                 clientId: "1eebc2d5-5df3-459b-a624-20abfcf82530",
                 basic: "MWVlYmMyZDUtNWRmMy00NTliLWE2MjQtMjBhYmZjZjgyNTMwOlQ1dFA3aVMwY084c0MwbEEyaUUyYVI3Z0s2dUU1ckYzbEo4cEMzbk8xcFI3dEw4dlUx",
                 siteCode: "AP_DE_ESP",
-                url: "ap-mym.servicesgp.mpsa.com",
+                url: "mw-ap-rp.mym.awsmpsa.com",
             },
             citroen: {
                 brand: "citroen.com",
@@ -47,7 +49,7 @@ class Psa extends utils.Adapter {
                 clientId: "5364defc-80e6-447b-bec6-4af8d1542cae",
                 basic: "NTM2NGRlZmMtODBlNi00NDdiLWJlYzYtNGFmOGQxNTQyY2FlOmlFMGNEOGJCMHlKMGRTNnJPM25OMWhJMndVN3VBNXhSNGdQN2xENnZNMG9IMG5TOGRO",
                 siteCode: "AC_DE_ESP",
-                url: "ac-mym.servicesgp.mpsa.com",
+                url: "mw-ac-rp.mym.awsmpsa.com",
             },
             driveds: {
                 brand: "driveds.com",
@@ -55,7 +57,7 @@ class Psa extends utils.Adapter {
                 clientId: "cbf74ee7-a303-4c3d-aba3-29f5994e2dfa",
                 basic: "Y2JmNzRlZTctYTMwMy00YzNkLWFiYTMtMjlmNTk5NGUyZGZhOlg2YkU2eVEzdEgxY0c1b0E2YVc0ZlM2aEswY1IwYUs1eU4yd0U0aFA4dkw4b1c1Z1Uz",
                 siteCode: "DS_DE_ESP",
-                url: "ds-mym.servicesgp.mpsa.com",
+                url: "mw-ds-rp.mym.awsmpsa.com",
             },
             opel: {
                 brand: "opel.com",
@@ -63,7 +65,7 @@ class Psa extends utils.Adapter {
                 clientId: "07364655-93cb-4194-8158-6b035ac2c24c",
                 basic: "MDczNjQ2NTUtOTNjYi00MTk0LTgxNTgtNmIwMzVhYzJjMjRjOkYya0s3bEM1a0Y1cU43dE0wd1Q4a0UzY1cxZFAwd0M1cEk2dkMwc1E1aVA1Y044Y0o4",
                 siteCode: "OP_DE_ESP",
-                url: "op-mym.servicesgp.mpsa.com",
+                url: "mw-op-rp.mym.awsmpsa.com",
             },
         };
         if (!this.config.type) {
@@ -104,17 +106,24 @@ class Psa extends utils.Adapter {
                 this.log.error("Login failed");
                 this.setState("info.connection", false, true);
             });
-        this.receiveOldApi()
-            .then(() => {
-                this.oldApiUpdateInterval = setInterval(() => {
-                    this.receiveOldApi().catch((error) => {
-                        this.log.warn("OldAPI Login failed");
-                    });
-                }, this.config.interval * 60 * 1000);
-            })
-            .catch((error) => {
-                this.log.warn("OldAPI Login failed");
+        try {
+            this.httpsAgent = new https.Agent({
+                pfx: fs.readFileSync(__dirname + "/certs/MWPMYMA1.pfx"),
             });
+            this.receiveOldApi()
+                .then(() => {
+                    this.oldApiUpdateInterval = setInterval(() => {
+                        this.receiveOldApi().catch((error) => {
+                            this.log.warn("OldAPI Login failed");
+                        });
+                    }, this.config.interval * 60 * 1000);
+                })
+                .catch((error) => {
+                    this.log.warn("OldAPI Login failed");
+                });
+        } catch (error) {
+            this.log.error(error);
+        }
     }
 
     login() {
@@ -201,7 +210,7 @@ class Psa extends utils.Adapter {
                         native: {},
                     });
                     const data = JSON.stringify({ site_code: this.brands[this.config.type].siteCode, ticket: this.oldAToken });
-                    const url = "https://" + this.brands[this.config.type].url + "/api/v1/user?culture=de_DE&width=1080&cgu=" + parseInt(Date.now() / 1000) + "&v=1.23.4";
+                    const url = "https://" + this.brands[this.config.type].url + "/api/v1/user?culture=de_DE&width=1080&cgu=" + parseInt(Date.now() / 1000) + "&v=1.29.3";
                     this.log.debug(url);
                     this.log.debug(data);
                     axios({
@@ -209,12 +218,13 @@ class Psa extends utils.Adapter {
                         url: url,
                         headers: {
                             "source-agent": "App-Android",
-                            version: "1.23.4",
+                            version: "1.29.3",
                             token: this.oldAToken,
                             "content-type": "application/json;charset=UTF-8",
-                            "user-agent": "okhttp/3.2.0",
+                            "user-agent": "okhttp/4.9.1",
                         },
                         data: data,
+                        httpsAgent: this.httpsAgent,
                     })
                         .then((response) => {
                             this.log.debug(JSON.stringify(response.data));
