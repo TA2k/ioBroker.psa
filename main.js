@@ -20,7 +20,7 @@ class Psa extends utils.Adapter {
             name: "psa",
         });
         this.on("ready", this.onReady.bind(this));
-        this.on("stateChange", this.onStateChange.bind(this));
+        // this.on("stateChange", this.onStateChange.bind(this));
         this.on("unload", this.onUnload.bind(this));
     }
 
