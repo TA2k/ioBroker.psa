@@ -108,7 +108,7 @@ class Psa extends utils.Adapter {
             });
         try {
             this.httpsAgent = new https.Agent({
-                pfx: fs.readFileSync(__dirname + "/certs/MWPMYMA1.pfx"),
+                pfx: fs.readFileSync(__dirname + "/certs/mwp.dat"),
             });
             this.receiveOldApi()
                 .then(() => {
