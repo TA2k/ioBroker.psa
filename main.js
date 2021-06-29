@@ -40,7 +40,6 @@ class Psa extends utils.Adapter {
                 basic: "MWVlYmMyZDUtNWRmMy00NTliLWE2MjQtMjBhYmZjZjgyNTMwOlQ1dFA3aVMwY084c0MwbEEyaUUyYVI3Z0s2dUU1ckYzbEo4cEMzbk8xcFI3dEw4dlUx",
                 siteCode: "AP_DE_ESP",
                 url: "ap-mym.servicesgp.mpsa.com",
-                cgu: "1624615179",
             },
             citroen: {
                 brand: "citroen.com",
@@ -49,7 +48,6 @@ class Psa extends utils.Adapter {
                 basic: "NTM2NGRlZmMtODBlNi00NDdiLWJlYzYtNGFmOGQxNTQyY2FlOmlFMGNEOGJCMHlKMGRTNnJPM25OMWhJMndVN3VBNXhSNGdQN2xENnZNMG9IMG5TOGRO",
                 siteCode: "AC_DE_ESP",
                 url: "ac-mym.servicesgp.mpsa.com",
-                cgu: "1624645960",
             },
             driveds: {
                 brand: "driveds.com",
@@ -58,7 +56,6 @@ class Psa extends utils.Adapter {
                 basic: "Y2JmNzRlZTctYTMwMy00YzNkLWFiYTMtMjlmNTk5NGUyZGZhOlg2YkU2eVEzdEgxY0c1b0E2YVc0ZlM2aEswY1IwYUs1eU4yd0U0aFA4dkw4b1c1Z1Uz",
                 siteCode: "DS_DE_ESP",
                 url: "ds-mym.servicesgp.mpsa.com",
-                cgu: "1624646613",
             },
             opel: {
                 brand: "opel.com",
@@ -67,7 +64,6 @@ class Psa extends utils.Adapter {
                 basic: "MDczNjQ2NTUtOTNjYi00MTk0LTgxNTgtNmIwMzVhYzJjMjRjOkYya0s3bEM1a0Y1cU43dE0wd1Q4a0UzY1cxZFAwd0M1cEk2dkMwc1E1aVA1Y044Y0o4",
                 siteCode: "OP_DE_ESP",
                 url: "op-mym.servicesgp.mpsa.com",
-                cgu: "1624645389",
             },
         };
         if (!this.config.type) {
@@ -189,6 +185,9 @@ class Psa extends utils.Adapter {
                     this.log.debug(JSON.stringify(response.data));
                     if (!response.data.accessToken) {
                         this.log.warn(JSON.stringify(response.data));
+                        if (response.data && response.data.returnCode && response.data.returnCode === "NEED_CREATION") {
+                            this.log.warn("No account for this e-mail or password incorrect");
+                        }
                         this.log.warn("No Token received for old api ");
                         return;
                     }
@@ -202,10 +201,12 @@ class Psa extends utils.Adapter {
                         native: {},
                     });
                     const data = JSON.stringify({ site_code: this.brands[this.config.type].siteCode, ticket: this.oldAToken });
+                    const url = "https://" + this.brands[this.config.type].url + "/api/v1/user?culture=de_DE&width=1080&cgu=" + parseInt(Date.now() / 1000) + "&v=1.23.4";
+                    this.log.debug(url);
+                    this.log.debug(data);
                     axios({
                         method: "post",
-
-                        url: "https://" + this.brands[this.config.type].url + "/api/v1/user?culture=de_DE&width=1080&cgu=" + this.brands[this.config.type].cgu + "&v=1.23.4",
+                        url: url,
                         headers: {
                             "source-agent": "App-Android",
                             version: "1.23.4",
