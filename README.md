@@ -13,7 +13,7 @@
 
 ## psa adapter for ioBroker
 
-PSA Adapter for Peugot, Citroen, DS, Opel
+PSA Adapter for Peugeot, Citroen, DS, Opel
 
 ## Changelog
 

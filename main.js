@@ -35,7 +35,7 @@ class Psa extends utils.Adapter {
         this.extractKeys = extractKeys;
         this.idArray = [];
         this.brands = {
-            peugot: {
+            peugeot: {
                 brand: "peugeot.com",
                 realm: "clientsB2CPeugeot",
                 clientId: "1eebc2d5-5df3-459b-a624-20abfcf82530",

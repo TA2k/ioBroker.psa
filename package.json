@@ -1,7 +1,7 @@
 {
   "name": "iobroker.psa",
   "version": "0.0.6",
-  "description": "PSA Adapter for Peugot, Citroen, DS, Opel, Vauxhall",
+  "description": "PSA Adapter for Peugeot, Citroen, DS, Opel, Vauxhall",
   "author": {
     "name": "TA2k",
     "email": "tombox2020@gmail.com"
@@ -10,7 +10,7 @@
   "license": "MIT",
   "keywords": [
     "PSA",
-    "Peugot",
+    "Peugeot",
     "Citroen",
     "DS",
     "Opel",
