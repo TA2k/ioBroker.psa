@@ -308,7 +308,7 @@ class Psa extends utils.Adapter {
                     this.log.error("Get Vehicles failed");
                     error.response && this.log.error(JSON.stringify(error.response.data));
                     if (error.response && error.response.data && error.response.data.code && error.response.data.code === 40410) {
-                        this.log.error("No compatible vehicles found. Maybe your vehicle is too old.");
+                        this.log.error("No compatible vehicles found. Only electro vehicle supported, yet.");
                     }
                     reject();
                 });
