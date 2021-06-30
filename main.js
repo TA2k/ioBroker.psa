@@ -254,7 +254,7 @@ class Psa extends utils.Adapter {
                 url: "https://idpcvs." + this.brands[this.config.type].brand + "/am/oauth2/access_token",
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
-                    Authorization: "Basic MWVlYmMyZDUtNWRmMy00NTliLWE2MjQtMjBhYmZjZjgyNTMwOlQ1dFA3aVMwY084c0MwbEEyaUUyYVI3Z0s2dUU1ckYzbEo4cEMzbk8xcFI3dEw4dlUx",
+                    Authorization: "Basic " + this.brands[this.config.type].basic,
                 },
                 data: "realm=" + this.brands[this.config.type].realm + "&grant_type=refresh_token&refresh_token=" + this.rToken,
             })
