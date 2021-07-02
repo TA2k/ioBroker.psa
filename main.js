@@ -171,19 +171,24 @@ class Psa extends utils.Adapter {
 
     receiveOldApi() {
         return new Promise((resolve, reject) => {
-            const loginData = {
+            var data = JSON.stringify({
+                fields: { USR_PASSWORD: { value: this.config.password }, USR_EMAIL: { value: this.config.user } },
+                action: "authenticate",
                 siteCode: this.brands[this.config.type].siteCode,
                 culture: "de-DE",
-                action: "authenticate",
-                fields: { USR_EMAIL: { value: this.config.user }, USR_PASSWORD: { value: this.config.password } },
-            };
+            });
             axios({
-                method: "get",
-                url: "https://id-dcr." + this.brands[this.config.type].brand + "/mobile-services/GetAccessToken?jsonRequest=" + encodeURIComponent(JSON.stringify(loginData)),
+                method: "post",
+                url: "https://id-dcr." + this.brands[this.config.type].brand + "/mobile-services/GetAccessToken",
                 headers: {
-                    Accept: "application/json",
-                    "User-Agent": "okhttp/2.3.0",
+                    Host: "id-dcr.peugeot.com",
+                    Accept: "*/*",
+                    Cookie: "BIGipServerAPAC_DCR_FEND_PROD.app~APAC_DCR_FEND_PROD_pool=655392778.20480.0000; DCROPENIDAP=77f8a8f32fb2c2ef7692bb9afa996486; PSACountry=DE",
+                    "User-Agent": "MyPeugeot/1.29.1 (iPhone; iOS 12.5.1; Scale/2.00)",
+                    "Accept-Language": "de-DE;q=1",
+                    "Content-Type": "application/x-www-form-urlencoded",
                 },
+                data: "jsonRequest=" + encodeURIComponent(data),
             })
                 .then(async (response) => {
                     if (!response.data) {
@@ -197,10 +202,19 @@ class Psa extends utils.Adapter {
                         if (response.data && response.data.returnCode && response.data.returnCode === "NEED_CREATION") {
                             this.log.warn("No account for this e-mail or password incorrect");
                         }
-                        this.log.warn("No Token received for old api ");
-                        return;
+                        if (response.data.returnCode === "NEED_AUTHORIZATION") {
+                            this.log.debug("Old API Auth");
+                            this.oldSession = response.data.session;
+                            this.oldToken = response.data.token;
+                            await this.receiveOldApiAuth();
+                        } else {
+                            this.log.warn("No Token received for old api ");
+                            return;
+                        }
+                    } else {
+                        this.oldAToken = response.data.accessToken;
                     }
-                    this.oldAToken = response.data.accessToken;
+
                     await this.setObjectNotExistsAsync("oldApi", {
                         type: "device",
                         common: {
@@ -242,6 +256,48 @@ class Psa extends utils.Adapter {
                 .catch((error) => {
                     this.log.warn(error);
                     this.log.warn("Login old api failed");
+                    error.response && this.log.warn(JSON.stringify(error.response.data));
+                    reject();
+                });
+        });
+    }
+    receiveOldApiAuth() {
+        return new Promise((resolve, reject) => {
+            var data = JSON.stringify({
+                action: "authorize",
+                siteCode: this.brands[this.config.type].siteCode,
+                session: this.oldSession,
+                token: this.oldToken,
+                culture: "de-DE",
+            });
+            axios({
+                method: "post",
+                url: "https://id-dcr." + this.brands[this.config.type].brand + "/mobile-services/GetAccessToken",
+                headers: {
+                    "User-Agent": "MyPeugeot/1.29.3 (iPhone; iOS 14.7; Scale/2.00)",
+                    "Accept-Language": "de-DE;q=1",
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                data: "jsonRequest=" + encodeURIComponent(data),
+            })
+                .then(async (response) => {
+                    if (!response.data) {
+                        this.log.error("Auth old api failed maybe incorrect login information");
+                        reject();
+                        return;
+                    }
+                    this.log.debug(JSON.stringify(response.data));
+                    if (!response.data.accessToken) {
+                        this.log.warn(JSON.stringify(response.data));
+                        this.log.warn("No Auth Token received for old api ");
+                        return;
+                    }
+                    this.oldAToken = response.data.accessToken;
+                    resolve();
+                })
+                .catch((error) => {
+                    this.log.warn(error);
+                    this.log.warn("Auth old api failed");
                     error.response && this.log.warn(JSON.stringify(error.response.data));
                     reject();
                 });
@@ -308,7 +364,7 @@ class Psa extends utils.Adapter {
                     this.log.error("Get Vehicles failed");
                     error.response && this.log.error(JSON.stringify(error.response.data));
                     if (error.response && error.response.data && error.response.data.code && error.response.data.code === 40410) {
-                        this.log.error("No compatible vehicles found. Only electro vehicle supported, yet.");
+                        this.log.error("No compatible vehicles found. Maybe your vehicle is too old.");
                     }
                     reject();
                 });
