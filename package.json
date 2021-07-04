@@ -1,7 +1,7 @@
 {
   "name": "iobroker.psa",
-  "version": "0.0.7",
-  "description": "PSA Adapter for Peugeot, Citroen, DS, Opel, Vauxhall",
+  "version": "0.0.8",
+  "description": "PSA Adapter for Peugeot, Citroen, DS, Opel",
   "author": {
     "name": "TA2k",
     "email": "tombox2020@gmail.com"
@@ -13,8 +13,7 @@
     "Peugeot",
     "Citroen",
     "DS",
-    "Opel",
-    "Vauxhall"
+    "Opel"
   ],
   "repository": {
     "type": "git",

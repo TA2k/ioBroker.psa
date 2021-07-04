@@ -1,9 +1,9 @@
 {
     "common": {
         "name": "psa",
-        "version": "0.0.7",
+        "version": "0.0.8",
         "news": {
-            "0.0.7": {
+            "0.0.8": {
                 "en": "initial release",
                 "de": "Erstveröffentlichung",
                 "ru": "Начальная версия",
@@ -30,15 +30,15 @@
             "zh-cn": "PSA"
         },
         "desc": {
-            "en": "PSA Adapter for Peugeot, Citroen, DS, Opel, Vauxhall",
-            "de": "PSA-Adapter für Peugeot, Citroen, DS, Opel, Vauxhall",
-            "ru": "Адаптер PSA для Peugeot, Citroen, DS, Opel, Vauxhall",
-            "pt": "Adaptador PSA para Peugeot, Citroen, DS, Opel, Vauxhall",
-            "nl": "PSA Adapter voor Peugeot, Citroen, DS, Opel, Vauxhall",
-            "fr": "Adaptateur PSA pour Peugeot, Citroën, DS, Opel, Vauxhall",
-            "it": "Adattatore PSA per Peugeot, Citroen, DS, Opel, Vauxhall",
-            "es": "Adaptador PSA para Peugeot, Citroen, DS, Opel, Vauxhall",
-            "pl": "Adapter PSA do Peugeot, Citroen, DS, Opel, Vauxhall",
+            "en": "PSA Adapter for Peugeot, Citroen, DS, Opel",
+            "de": "PSA-Adapter für Peugeot, Citroen, DS, Opel",
+            "ru": "Адаптер PSA для Peugeot, Citroen, DS, Opel",
+            "pt": "Adaptador PSA para Peugeot, Citroen, DS, Opel",
+            "nl": "PSA Adapter voor Peugeot, Citroen, DS, Opel",
+            "fr": "Adaptateur PSA pour Peugeot, Citroën, DS, Opel",
+            "it": "Adattatore PSA per Peugeot, Citroen, DS, Opel",
+            "es": "Adaptador PSA para Peugeot, Citroen, DS, Opel",
+            "pl": "Adapter PSA do Peugeot, Citroen, DS, Opel",
             "zh-cn": "标致、雪铁龙、DS、欧宝、沃克斯豪尔的 PSA 适配器"
         },
         "authors": [

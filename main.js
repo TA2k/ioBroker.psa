@@ -112,6 +112,7 @@ class Psa extends utils.Adapter {
             });
             this.receiveOldApi()
                 .then(() => {
+                    this.log.info("OldAPI Login succesful, but only mileage is available");
                     this.oldApiUpdateInterval = setInterval(() => {
                         this.receiveOldApi().catch((error) => {
                             this.log.warn("OldAPI Login failed");
@@ -203,7 +204,7 @@ class Psa extends utils.Adapter {
                             this.log.warn("No account for this e-mail or password incorrect");
                         }
                         if (response.data.returnCode === "NEED_AUTHORIZATION") {
-                            this.log.debug("Old API Auth");
+                            this.log.info("Old API needs Auth if this is failing please logout and login in the app");
                             this.oldSession = response.data.session;
                             this.oldToken = response.data.token;
                             await this.receiveOldApiAuth();
@@ -361,10 +362,10 @@ class Psa extends utils.Adapter {
                 })
                 .catch((error) => {
                     this.log.error(error);
-                    this.log.error("Get Vehicles failed");
                     error.response && this.log.error(JSON.stringify(error.response.data));
                     if (error.response && error.response.data && error.response.data.code && error.response.data.code === 40410) {
-                        this.log.error("No compatible vehicles found. Maybe your vehicle is too old.");
+                        this.log.error("No compatible vehicles found. Only electric cars are available for new api.");
+                        this.log.info("You can find under oldAPI the mileage of the car.");
                     }
                     reject();
                 });

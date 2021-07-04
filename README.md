@@ -17,7 +17,7 @@ PSA Adapter for Peugeot, Citroen, DS, Opel
 
 ## Changelog
 
-0.0.7 Initial release
+0.0.8 Initial release
 
 ## License
 
