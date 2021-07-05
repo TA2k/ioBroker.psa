@@ -182,7 +182,6 @@ class Psa extends utils.Adapter {
                 method: "post",
                 url: "https://id-dcr." + this.brands[this.config.type].brand + "/mobile-services/GetAccessToken",
                 headers: {
-                    Host: "id-dcr.peugeot.com",
                     Accept: "*/*",
                     Cookie: "BIGipServerAPAC_DCR_FEND_PROD.app~APAC_DCR_FEND_PROD_pool=655392778.20480.0000; DCROPENIDAP=77f8a8f32fb2c2ef7692bb9afa996486; PSACountry=DE",
                     "User-Agent": "MyPeugeot/1.29.1 (iPhone; iOS 12.5.1; Scale/2.00)",
