@@ -172,7 +172,7 @@ class Psa extends utils.Adapter {
 
     receiveOldApi() {
         return new Promise((resolve, reject) => {
-            var data = JSON.stringify({
+            const data = JSON.stringify({
                 fields: { USR_PASSWORD: { value: this.config.password }, USR_EMAIL: { value: this.config.user } },
                 action: "authenticate",
                 siteCode: this.brands[this.config.type].siteCode,
@@ -263,7 +263,7 @@ class Psa extends utils.Adapter {
     }
     receiveOldApiAuth() {
         return new Promise((resolve, reject) => {
-            var data = JSON.stringify({
+            const data = JSON.stringify({
                 action: "authorize",
                 siteCode: this.brands[this.config.type].siteCode,
                 session: this.oldSession,
@@ -388,7 +388,7 @@ class Psa extends utils.Adapter {
                     resolve();
                 })
                 .catch((error) => {
-                    if (error.response.status === 401) {
+                    if (error.response && error.response.status === 401) {
                         this.log.info("Token expired. Try to refresh token");
                         this.refreshToken()
                             .then(() => {
