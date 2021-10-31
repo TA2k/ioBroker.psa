@@ -89,11 +89,17 @@ class Psa extends utils.Adapter {
                             this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/status", element.vin + ".status").catch(() => {
                                 this.log.error("Get device status failed");
                             });
+                            this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/lastPosition", element.vin + ".status.lastPosition").catch(() => {
+                                this.log.error("Get device location failed");
+                            });
                         });
                         this.appUpdateInterval = setInterval(() => {
                             this.idArray.forEach((element) => {
                                 this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/status", element.vin + ".status").catch(() => {
                                     this.log.error("Get device status failed");
+                                });
+                                this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/lastPosition", element.vin + ".status.lastPosition").catch(() => {
+                                    this.log.error("Get device location failed");
                                 });
                             });
                         }, this.config.interval * 60 * 1000);
