@@ -116,12 +116,12 @@ class Psa extends utils.Adapter {
                     this.log.info("OldAPI Login succesful, but only mileage is available");
                     this.oldApiUpdateInterval = setInterval(() => {
                         this.receiveOldApi().catch((error) => {
-                            this.log.warn("OldAPI Login failed");
+                            this.log.warn("OldAPI Status failed");
                         });
                     }, this.config.interval * 60 * 1000);
                 })
                 .catch((error) => {
-                    this.log.warn("OldAPI Login failed");
+                    this.log.warn("OldAPI Login failed, only relevant for non eletric cars");
                 });
         } catch (error) {
             this.log.error(error);
@@ -252,6 +252,7 @@ class Psa extends utils.Adapter {
                             this.log.warn(error);
                             this.log.warn("receive old api failed");
                             error.response && this.log.warn(JSON.stringify(error.response.data));
+                            reject();
                         });
                 })
                 .catch((error) => {

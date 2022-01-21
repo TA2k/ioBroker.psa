@@ -1,6 +1,6 @@
 {
     "name": "iobroker.psa",
-    "version": "0.0.9",
+    "version": "0.0.10",
     "description": "PSA Adapter for Peugeot, Citroen, DS, Opel",
     "author": {
         "name": "TA2k",
