@@ -41,6 +41,7 @@ class Psa extends utils.Adapter {
                 clientId: "1eebc2d5-5df3-459b-a624-20abfcf82530",
                 basic: "MWVlYmMyZDUtNWRmMy00NTliLWE2MjQtMjBhYmZjZjgyNTMwOlQ1dFA3aVMwY084c0MwbEEyaUUyYVI3Z0s2dUU1ckYzbEo4cEMzbk8xcFI3dEw4dlUx",
                 siteCode: "AP_DE_ESP",
+                shortBrand: "AP",
                 url: "mw-ap-rp.mym.awsmpsa.com",
             },
             citroen: {
@@ -49,6 +50,7 @@ class Psa extends utils.Adapter {
                 clientId: "5364defc-80e6-447b-bec6-4af8d1542cae",
                 basic: "NTM2NGRlZmMtODBlNi00NDdiLWJlYzYtNGFmOGQxNTQyY2FlOmlFMGNEOGJCMHlKMGRTNnJPM25OMWhJMndVN3VBNXhSNGdQN2xENnZNMG9IMG5TOGRO",
                 siteCode: "AC_DE_ESP",
+                shortBrand: "AC",
                 url: "mw-ac-rp.mym.awsmpsa.com",
             },
             driveds: {
@@ -57,6 +59,7 @@ class Psa extends utils.Adapter {
                 clientId: "cbf74ee7-a303-4c3d-aba3-29f5994e2dfa",
                 basic: "Y2JmNzRlZTctYTMwMy00YzNkLWFiYTMtMjlmNTk5NGUyZGZhOlg2YkU2eVEzdEgxY0c1b0E2YVc0ZlM2aEswY1IwYUs1eU4yd0U0aFA4dkw4b1c1Z1Uz",
                 siteCode: "DS_DE_ESP",
+                shortBrand: "DS",
                 url: "mw-ds-rp.mym.awsmpsa.com",
             },
             opel: {
@@ -65,6 +68,7 @@ class Psa extends utils.Adapter {
                 clientId: "07364655-93cb-4194-8158-6b035ac2c24c",
                 basic: "MDczNjQ2NTUtOTNjYi00MTk0LTgxNTgtNmIwMzVhYzJjMjRjOkYya0s3bEM1a0Y1cU43dE0wd1Q4a0UzY1cxZFAwd0M1cEk2dkMwc1E1aVA1Y044Y0o4",
                 siteCode: "OP_DE_ESP",
+                shortBrand: "OP",
                 url: "mw-op-rp.mym.awsmpsa.com",
             },
         };
@@ -78,7 +82,10 @@ class Psa extends utils.Adapter {
             this.config.interval = 0.5;
         }
         this.clientId = this.brands[this.config.type].clientId;
-
+        this.httpsAgent = new https.Agent({
+            pfx: fs.readFileSync(__dirname + "/certs/mwp.dat"),
+            passphrase: "y5Y2my5B",
+        });
         this.login()
             .then(() => {
                 this.setState("info.connection", true, true);
@@ -107,10 +114,6 @@ class Psa extends utils.Adapter {
                 this.setState("info.connection", false, true);
             });
         try {
-            this.httpsAgent = new https.Agent({
-                pfx: fs.readFileSync(__dirname + "/certs/mwp.dat"),
-                passphrase: "y5Y2my5B",
-            });
             this.receiveOldApi()
                 .then(() => {
                     this.log.info("OldAPI Login succesful, but only mileage is available");
@@ -125,6 +128,13 @@ class Psa extends utils.Adapter {
                 });
         } catch (error) {
             this.log.error(error);
+        }
+        await this.loginNewApi();
+        if (this.newApi.mym_access_token) {
+            this.getnewApiData();
+            this.newApiUpdateInterval = setInterval(() => {
+                this.getnewApiData();
+            }, this.config.interval * 60 * 1000);
         }
     }
 
@@ -171,6 +181,128 @@ class Psa extends utils.Adapter {
         });
     }
 
+    async loginNewApi() {
+        let data = JSON.stringify({
+            fields: { USR_PASSWORD: { value: this.config.password }, USR_EMAIL: { value: this.config.user } },
+            action: "authenticate",
+            siteCode: this.brands[this.config.type].siteCode,
+            culture: "de-DE",
+        });
+        const access_token = await axios({
+            method: "post",
+            url: "https://id-dcr." + this.brands[this.config.type].brand + "/mobile-services/GetAccessToken",
+            headers: {
+                Accept: "*/*",
+                Cookie: "PSACountry=DE",
+                "User-Agent": "MyPeugeot/1.35.2 (iPhone; iOS 12.5.1; Scale/2.00)",
+                "Accept-Language": "de-DE;q=1",
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            data: "jsonRequest=" + encodeURIComponent(data),
+        })
+            .then(async (response) => {
+                if (!response.data) {
+                    this.log.error("Login old api failed maybe incorrect login information");
+
+                    return;
+                }
+                this.log.debug(JSON.stringify(response.data));
+                if (!response.data.accessToken) {
+                    this.log.warn(JSON.stringify(response.data));
+                    if (response.data && response.data.returnCode && response.data.returnCode === "NEED_CREATION") {
+                        this.log.warn("No account for this e-mail or password incorrect");
+                    }
+                    if (response.data.returnCode === "NEED_AUTHORIZATION") {
+                        this.log.info("new API needs Auth if this is failing please logout and login in the app");
+                    } else {
+                        this.log.warn("No Token received for old api ");
+                        return;
+                    }
+                } else {
+                    return response.data.accessToken;
+                }
+            })
+            .catch((error) => {
+                this.log.warn(error);
+                this.log.warn("Login new api failed");
+                error.response && this.log.warn(JSON.stringify(error.response.data));
+            });
+        if (!access_token) {
+            return;
+        }
+
+        data = JSON.stringify({ site_code: this.brands[this.config.type].siteCode, ticket: this.oldAToken });
+        this.log.debug(data);
+        await axios({
+            method: "get",
+            url:
+                "https://microservices.mym.awsmpsa.com/session/v1/accesstoken?source=APP&v=1.35.2&site_code=" +
+                this.brands[this.config.type].siteCode +
+                "&language=de&brand=" +
+                this.brands[this.config.type].shortBrand +
+                "&culture=de_DE",
+            headers: {
+                Host: "microservices.mym.awsmpsa.com",
+                ticket: access_token,
+                accept: "*/*",
+                "user-agent": "MyPeugeot/1.35.2 (com.psa.mypeugeot; build:202206081500; iOS 14.8.0) Alamofire/5.6.1",
+                "accept-language": "de-DE;q=1.0",
+            },
+            httpsAgent: this.httpsAgent,
+        })
+            .then(async (response) => {
+                this.log.debug(JSON.stringify(response.data));
+                if (response.data.success) {
+                    await this.setObjectNotExistsAsync("newApi", {
+                        type: "device",
+                        common: {
+                            name: "new API, only mileage available",
+                            role: "indicator",
+                        },
+                        native: {},
+                    });
+                    this.newApi = response.data.success;
+                }
+            })
+            .catch((error) => {
+                this.log.warn(error);
+                this.log.warn("receive new api failed");
+                error.response && this.log.warn(JSON.stringify(error.response.data));
+            });
+    }
+    async getnewApiData() {
+        if (this.newApi && !this.newApi.mym_access_token) {
+            return;
+        }
+        await axios({
+            method: "get",
+            url:
+                "https://microservices.mym.awsmpsa.com/me/v1/user?source=APP&v=1.35.2&site_code=" +
+                this.brands[this.config.type].siteCode +
+                "&language=de&brand=" +
+                this.brands[this.config.type].shortBrand +
+                "&culture=de_DE",
+            headers: {
+                Host: "microservices.mym.awsmpsa.com",
+                accept: "*/*",
+                "mym-access-token": this.newApi.mym_access_token,
+                "refresh-sams-cache": "1",
+                "user-agent": "MyPeugeot/1.35.2 (com.psa.mypeugeot; build:202206081500; iOS 14.8.0) Alamofire/5.6.1",
+                "accept-language": "de-DE;q=1.0",
+            },
+            httpsAgent: this.httpsAgent,
+        })
+            .then((response) => {
+                this.log.debug(JSON.stringify(response.data));
+                if (response.data.success) {
+                    this.extractKeys(this, "newApi", response.data.success);
+                }
+            })
+            .catch((error) => {
+                this.log.warn(error);
+                error.response && this.log.warn(JSON.stringify(error.response.data));
+            });
+    }
     receiveOldApi() {
         return new Promise((resolve, reject) => {
             const data = JSON.stringify({
@@ -419,6 +551,7 @@ class Psa extends utils.Adapter {
         this.clearInterval(this.appUpdateInterval);
         this.clearInterval(this.oldApiUpdateInterval);
         this.clearInterval(this.refreshTokenInterval);
+        this.newApiUpdateInterval && this.clearInterval(this.newApiUpdateInterval);
         try {
             callback();
         } catch (e) {
