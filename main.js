@@ -130,7 +130,7 @@ class Psa extends utils.Adapter {
             this.log.error(error);
         }
         await this.loginNewApi();
-        if (this.newApi.mym_access_token) {
+        if (this.newApi && this.newApi.mym_access_token) {
             this.getnewApiData();
             this.newApiUpdateInterval = setInterval(() => {
                 this.getnewApiData();
