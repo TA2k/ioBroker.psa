@@ -1,123 +1,113 @@
 {
-    "common": {
-        "name": "psa",
-        "version": "0.0.10",
-        "news": {
-            "0.0.10": {
-                "en": "update old api certificate"
-            },
-            "0.0.8": {
-                "en": "initial release",
-                "de": "Erstveröffentlichung",
-                "ru": "Начальная версия",
-                "pt": "lançamento inicial",
-                "nl": "Eerste uitgave",
-                "fr": "Première version",
-                "it": "Versione iniziale",
-                "es": "Versión inicial",
-                "pl": "Pierwsze wydanie",
-                "zh-cn": "首次出版"
-            }
-        },
-        "title": "PSA",
-        "titleLang": {
-            "en": "PSA",
-            "de": "PSA",
-            "ru": "PSA",
-            "pt": "PSA",
-            "nl": "PSA",
-            "fr": "Message d'intérêt public",
-            "it": "PSA",
-            "es": "PSA",
-            "pl": "PSA",
-            "zh-cn": "PSA"
-        },
-        "desc": {
-            "en": "PSA Adapter for Peugeot, Citroen, DS, Opel",
-            "de": "PSA-Adapter für Peugeot, Citroen, DS, Opel",
-            "ru": "Адаптер PSA для Peugeot, Citroen, DS, Opel",
-            "pt": "Adaptador PSA para Peugeot, Citroen, DS, Opel",
-            "nl": "PSA Adapter voor Peugeot, Citroen, DS, Opel",
-            "fr": "Adaptateur PSA pour Peugeot, Citroën, DS, Opel",
-            "it": "Adattatore PSA per Peugeot, Citroen, DS, Opel",
-            "es": "Adaptador PSA para Peugeot, Citroen, DS, Opel",
-            "pl": "Adapter PSA do Peugeot, Citroen, DS, Opel",
-            "zh-cn": "标致、雪铁龙、DS、欧宝、沃克斯豪尔的 PSA 适配器"
-        },
-        "authors": [
-            "TA2k <tombox2020@gmail.com>"
-        ],
-        "keywords": [
-            "PSA",
-            "Peugeot",
-            "Citroen",
-            "DS",
-            "Opel",
-            "Vauxhall"
-        ],
-        "license": "MIT",
-        "platform": "Javascript/Node.js",
-        "icon": "psa.png",
-        "enabled": true,
-        "extIcon": "https://raw.githubusercontent.com/TA2k/ioBroker.psa/master/admin/psa.png",
-        "readme": "https://github.com/TA2k/ioBroker.psa/blob/master/README.md",
-        "loglevel": "info",
-        "mode": "daemon",
-        "type": "vehicle",
-        "compact": true,
-        "connectionType": "cloud",
-        "dataSource": "poll",
-        "materialize": true,
-        "plugins": {
-            "sentry": {
-                "dsn": "https://54e68d7a04c34078a6c3fec442b0c2ab@sentry.iobroker.net/138"
-            }
-        },
-        "dependencies": [
-            {
-                "js-controller": ">=3.0.0"
-            }
-        ],
-        "globalDependencies": [
-            {
-                "admin": ">=4.0.9"
-            }
-        ]
+  "common": {
+    "name": "psa",
+    "version": "0.0.11",
+    "news": {
+      "0.0.11": {
+        "en": "add new api"
+      },
+      "0.0.10": {
+        "en": "update old api certificate"
+      },
+      "0.0.8": {
+        "en": "initial release",
+        "de": "Erstveröffentlichung",
+        "ru": "Начальная версия",
+        "pt": "lançamento inicial",
+        "nl": "Eerste uitgave",
+        "fr": "Première version",
+        "it": "Versione iniziale",
+        "es": "Versión inicial",
+        "pl": "Pierwsze wydanie",
+        "zh-cn": "首次出版"
+      }
     },
-    "encryptedNative": [
-        "password"
-    ],
-    "protectedNative": [
-        "password"
-    ],
-    "native": {
-        "user": "",
-        "password": "",
-        "type": "",
-        "interval": 5
+    "title": "PSA",
+    "titleLang": {
+      "en": "PSA",
+      "de": "PSA",
+      "ru": "PSA",
+      "pt": "PSA",
+      "nl": "PSA",
+      "fr": "Message d'intérêt public",
+      "it": "PSA",
+      "es": "PSA",
+      "pl": "PSA",
+      "zh-cn": "PSA"
     },
-    "objects": [],
-    "instanceObjects": [
-        {
-            "_id": "info",
-            "type": "channel",
-            "common": {
-                "name": "Information"
-            },
-            "native": {}
-        },
-        {
-            "_id": "info.connection",
-            "type": "state",
-            "common": {
-                "role": "indicator.connected",
-                "name": "Device or service connected",
-                "type": "boolean",
-                "read": true,
-                "write": false,
-                "def": false
-            },
-            "native": {}
-        }
+    "desc": {
+      "en": "PSA Adapter for Peugeot, Citroen, DS, Opel",
+      "de": "PSA-Adapter für Peugeot, Citroen, DS, Opel",
+      "ru": "Адаптер PSA для Peugeot, Citroen, DS, Opel",
+      "pt": "Adaptador PSA para Peugeot, Citroen, DS, Opel",
+      "nl": "PSA Adapter voor Peugeot, Citroen, DS, Opel",
+      "fr": "Adaptateur PSA pour Peugeot, Citroën, DS, Opel",
+      "it": "Adattatore PSA per Peugeot, Citroen, DS, Opel",
+      "es": "Adaptador PSA para Peugeot, Citroen, DS, Opel",
+      "pl": "Adapter PSA do Peugeot, Citroen, DS, Opel",
+      "zh-cn": "标致、雪铁龙、DS、欧宝、沃克斯豪尔的 PSA 适配器"
+    },
+    "authors": ["TA2k <tombox2020@gmail.com>"],
+    "keywords": ["PSA", "Peugeot", "Citroen", "DS", "Opel", "Vauxhall"],
+    "license": "MIT",
+    "platform": "Javascript/Node.js",
+    "icon": "psa.png",
+    "enabled": true,
+    "extIcon": "https://raw.githubusercontent.com/TA2k/ioBroker.psa/master/admin/psa.png",
+    "readme": "https://github.com/TA2k/ioBroker.psa/blob/master/README.md",
+    "loglevel": "info",
+    "mode": "daemon",
+    "type": "vehicle",
+    "compact": true,
+    "connectionType": "cloud",
+    "dataSource": "poll",
+    "materialize": true,
+    "plugins": {
+      "sentry": {
+        "dsn": "https://54e68d7a04c34078a6c3fec442b0c2ab@sentry.iobroker.net/138"
+      }
+    },
+    "dependencies": [
+      {
+        "js-controller": ">=3.0.0"
+      }
+    ],
+    "globalDependencies": [
+      {
+        "admin": ">=4.0.9"
+      }
     ]
+  },
+  "encryptedNative": ["password"],
+  "protectedNative": ["password"],
+  "native": {
+    "user": "",
+    "password": "",
+    "type": "",
+    "interval": 5
+  },
+  "objects": [],
+  "instanceObjects": [
+    {
+      "_id": "info",
+      "type": "channel",
+      "common": {
+        "name": "Information"
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.connection",
+      "type": "state",
+      "common": {
+        "role": "indicator.connected",
+        "name": "Device or service connected",
+        "type": "boolean",
+        "read": true,
+        "write": false,
+        "def": false
+      },
+      "native": {}
+    }
+  ]
 }
