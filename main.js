@@ -96,6 +96,11 @@ class Psa extends utils.Adapter {
               this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/status", element.vin + ".status").catch(
                 () => {
                   this.log.error("Get device status failed");
+                  this.log.info("Remove device " + element.vin + " from list");
+                  const index = this.idArray.indexOf(element);
+                  if (index !== -1) {
+                    this.idArray.splice(index, 1);
+                  }
                 }
               );
             });
