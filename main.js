@@ -7,7 +7,7 @@
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 const utils = require("@iobroker/adapter-core");
-const axios = require("axios");
+const axios = require("axios").default;
 const https = require("https");
 const fs = require("fs");
 const { extractKeys } = require("./lib/extractKeys");
@@ -22,15 +22,7 @@ class Psa extends utils.Adapter {
       name: "psa",
     });
     this.on("ready", this.onReady.bind(this));
-    // this.on("stateChange", this.onStateChange.bind(this));
     this.on("unload", this.onUnload.bind(this));
-  }
-
-  /**
-   * Is called when databases are connected and adapter received configuration.
-   */
-  async onReady() {
-    // Initialize your adapter here
 
     this.extractKeys = extractKeys;
     this.idArray = [];
@@ -72,6 +64,14 @@ class Psa extends utils.Adapter {
         url: "mw-op-rp.mym.awsmpsa.com",
       },
     };
+  }
+
+  /**
+   * Is called when databases are connected and adapter received configuration.
+   */
+  async onReady() {
+    // Initialize your adapter here
+
     if (!this.config.type) {
       this.log.warn("Please select type in settings");
       return;
@@ -93,24 +93,26 @@ class Psa extends utils.Adapter {
         this.getVehicles()
           .then(() => {
             this.idArray.forEach((element) => {
-              this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/status", element.vin + ".status").catch(
-                () => {
-                  this.log.error("Get device status failed");
-                  this.log.info("Remove device " + element.vin + " from list");
-                  const index = this.idArray.indexOf(element);
-                  if (index !== -1) {
-                    this.idArray.splice(index, 1);
-                  }
+              this.getRequest(
+                "https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/status",
+                element.vin + ".status",
+              ).catch(() => {
+                this.log.error("Get device status failed");
+                this.log.info("Remove device " + element.vin + " from list");
+                const index = this.idArray.indexOf(element);
+                if (index !== -1) {
+                  this.idArray.splice(index, 1);
                 }
-              );
+              });
             });
             this.appUpdateInterval = setInterval(() => {
               this.idArray.forEach((element) => {
-                this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/status", element.vin + ".status").catch(
-                  () => {
-                    this.log.error("Get device status failed");
-                  }
-                );
+                this.getRequest(
+                  "https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/status",
+                  element.vin + ".status",
+                ).catch(() => {
+                  this.log.error("Get device status failed");
+                });
               });
             }, this.config.interval * 60 * 1000);
           })
@@ -370,7 +372,11 @@ class Psa extends utils.Adapter {
           });
           const data = JSON.stringify({ site_code: this.brands[this.config.type].siteCode, ticket: this.oldAToken });
           const url =
-            "https://" + this.brands[this.config.type].url + "/api/v1/user?culture=de_DE&width=1080&cgu=" + parseInt(Date.now() / 1000) + "&v=1.29.3";
+            "https://" +
+            this.brands[this.config.type].url +
+            "/api/v1/user?culture=de_DE&width=1080&cgu=" +
+            parseInt(Date.now() / 1000) +
+            "&v=1.29.3";
           this.log.debug(url);
           this.log.debug(data);
           axios({
@@ -500,9 +506,11 @@ class Psa extends utils.Adapter {
               native: {},
             });
 
-            this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id, element.vin + ".details").catch(() => {
-              this.log.error("Get Details failed");
-            });
+            this.getRequest("https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id, element.vin + ".details").catch(
+              () => {
+                this.log.error("Get Details failed");
+              },
+            );
           });
           resolve();
         })
