@@ -14,10 +14,40 @@
         <!-- Load our own files -->
         <link rel="stylesheet" type="text/css" href="style.css" />
         <script type="text/javascript" src="words.js"></script>
+        <script type="text/javascript" src="index_m.js"></script>
 
         <script type="text/javascript">
+
+            const brands = {
+                peugeot: {
+                    brand: "peugeot.com",
+                    clientId: "1eebc2d5-5df3-459b-a624-20abfcf82530",
+                    siteCode: "AP_DE_ESP",
+                    redirectUri: "mymap://oauth2redirect/de",
+                },
+                citroen: {
+                    brand: "citroen.com",
+                    clientId: "5364defc-80e6-447b-bec6-4af8d1542cae",
+                    siteCode: "AC_DE_ESP",
+                    redirectUri: "mymacsdk://oauth2redirect/de",
+                },
+                driveds: {
+                    brand: "driveds.com",
+                    clientId: "cbf74ee7-a303-4c3d-aba3-29f5994e2dfa",
+                    siteCode: "DS_DE_ESP",
+                    redirectUri: "mymdssdk://oauth2redirect/de",
+                },
+                opel: {
+                    brand: "opel.com",
+                    clientId: "07364655-93cb-4194-8158-6b035ac2c24c",
+                    siteCode: "OP_DE_ESP",
+                    redirectUri: "mymopsdk://oauth2redirect/de",
+                },
+            };
+
             // This will be called by the admin adapter when the settings page loads
             function load(settings, onChange) {
+
                 // example: select elements with id=key and class=value and insert value
                 if (!settings) return;
                 $(".value").each(function () {
@@ -28,14 +58,63 @@
                         $key.prop("checked", settings[id]).on("change", () => onChange());
                     } else {
                         // do not call onChange direct, because onChange could expect some arguments
-                        $key.val(settings[id])
-                            .on("change", () => onChange())
-                            .on("keyup", () => onChange());
+                        
+                        if(id === 'type') {
+                            updateLoginLink(settings[id]);
+
+                            $('#type').on('change', function () {
+                                updateLoginLink($(this).val());
+                            });
+                        }
+
+                        if(id !== 'code_verifier') {
+                            $key.val(settings[id])
+                                .on("change", () => onChange())
+                                .on("keyup", () => onChange());
+                        }
+                        
+
                     }
                 });
                 onChange(false);
                 // reinitialize all the Materialize labels on the page if you are dynamically adding inputs:
                 if (M) M.updateTextFields();
+            }
+
+            function updateLoginLink(brandType) {
+                var authorizeEndpoint = "https://idpcvs." + brands[brandType].brand + "/am/oauth2/authorize"; //"https://idpcvs.citroen.com/am/oauth2/authorize";
+                var tokenEndpoint = "https://idpcvs." + brands[brandType].brand + "/am/oauth2/access_token"; //"https://idpcvs.citroen.com/am/oauth2/access_token";
+                var clientId = brands[brandType].clientId; //"5364defc-80e6-447b-bec6-4af8d1542cae";
+
+                var codeVerifier = generateRandomString(64);
+                
+                const challengeMethod = crypto.subtle ? "S256" : "plain"
+    
+                Promise.resolve()
+                    .then(() => {
+                        if (challengeMethod === 'S256') {
+                            return generateCodeChallenge(codeVerifier)
+                        } else {
+                            return codeVerifier
+                        }
+                    })
+                    .then(function(codeChallenge) {
+                        document.getElementById('code_verifier').value = codeVerifier;
+    
+                        var redirectUri = brands[brandType].redirectUri; //"mymacsdk://oauth2redirect/de"
+                        var args = new URLSearchParams({
+                            response_type: "code",
+                            client_id: clientId,
+                            code_challenge_method: challengeMethod,
+                            code_challenge: codeChallenge,
+                            redirect_uri: redirectUri,
+                            siteCode: brands[brandType].siteCode,
+                            scope: "openid profile",
+                            state: "Drmhze6EPcv0fN_81Bj-nA"
+                        });
+                        var a = document.getElementById('loginLinkAC');
+                        a.href = authorizeEndpoint + "?" + args;
+                });                
             }
 
             // This will be called by the admin adapter when the user presses the save button
@@ -54,7 +133,27 @@
                 });
                 callback(obj);
             }
+
+            async function generateCodeChallenge(codeVerifier) {
+                var digest = await crypto.subtle.digest("SHA-256",
+                    new TextEncoder().encode(codeVerifier));
+    
+                return btoa(String.fromCharCode(...new Uint8Array(digest)))
+                    .replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
+            }
+    
+            function generateRandomString(length) {
+                var text = "";
+                var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    
+                for (var i = 0; i < length; i++) {
+                    text += possible.charAt(Math.floor(Math.random() * possible.length));
+                }
+    
+                return text;
+            }                
         </script>
+
     </head>
 
     <body>
@@ -89,6 +188,35 @@
                         <option value="opel">Opel</option>
                     </select>
                     <label for="type" class="translate">Type</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s12">
+                    <div class="card-panel linkDesign" style="background-color:#174475;">
+                        <span class="white-text translate">After selecting vehicle type click on Login Link to login on the vendors homepage. <br>
+                                                           Signin with your login data for the PSA app. <br>
+                                                           When you see 'Login successfull', open the developper tools (F12). <br>
+                                                           Hit the final 'OK' button and find the authorization code in the network tab of the developper tools. <br>
+                                                           Copy the code and paste it to the Authorization Code prompt on this configuration page. <br> </span>
+                        <span><a style="color: #1e88e5!important;" href="https://github.com/flobz/psa_car_controller/discussions/779" target="_blank" class="translate"> *** More information here ***</a></span>
+                    </div>
+                </div>
+            </div>
+            <div class="row cLoginLinkAC">
+                <div class="col s6 input-field">
+                    <a id="loginLinkAC" href="https://idpcvs.citroen.com/am/oauth2/authorize?response_type=code&client_id=5364defc-80e6-447b-bec6-4af8d1542cae&redirect_uri=mymacsdk://oauth2redirect/de&scope=openid+profile&state=Drmhze6EPcv0fN_81Bj-nA&code_challenge=5C1HXuvfGjAo-6TVzy_95lQNmpAjorsngCwiD3w3VHs&code_challenge_method=S256" target="_blank">Login Page</a>
+                </div>
+            </div>
+            <div hidden class="row">
+                <div class="col s6 input-field">
+                    <input type="text" class="value" id="code_verifier" />
+                    <label for="code_verifier" class="translate">Code Verifier</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s6 input-field">
+                    <input type="text" class="value" id="auth_code" />
+                    <label for="auth_code" class="translate">Authorization Code</label>
                 </div>
             </div>
             <div class="row">

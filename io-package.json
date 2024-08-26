@@ -1,8 +1,11 @@
 {
   "common": {
     "name": "psa",
-    "version": "0.0.12",
+    "version": "0.0.13",
     "news": {
+      "0.0.13": {
+        "en": "fix authentication method"
+      },
       "0.0.12": {
         "en": "update old api certificate"
       },
@@ -50,8 +53,17 @@
       "pl": "Adapter PSA do Peugeot, Citroen, DS, Opel",
       "zh-cn": "标致、雪铁龙、DS、欧宝、沃克斯豪尔的 PSA 适配器"
     },
-    "authors": ["TA2k <tombox2020@gmail.com>"],
-    "keywords": ["PSA", "Peugeot", "Citroen", "DS", "Opel", "Vauxhall"],
+    "authors": [
+      "TA2k <tombox2020@gmail.com>"
+    ],
+    "keywords": [
+      "PSA",
+      "Peugeot",
+      "Citroen",
+      "DS",
+      "Opel",
+      "Vauxhall"
+    ],
     "license": "MIT",
     "platform": "Javascript/Node.js",
     "icon": "psa.png",
@@ -79,13 +91,23 @@
       {
         "admin": ">=4.0.9"
       }
-    ]
+    ],
+    "installedFrom": "MaSiFeLas/ioBroker.psa#748d47f00a73200d049329147a43de2a1c2d8817"
   },
-  "encryptedNative": ["password"],
-  "protectedNative": ["password"],
+  "encryptedNative": [
+    "password"
+  ],
+  "protectedNative": [
+    "password"
+  ],
   "native": {
     "user": "",
     "password": "",
+    "code_verifier": "",
+    "expiresAt": 0,
+    "aToken": "",
+    "rToken": "",
+    "auth_code": "",
     "type": "",
     "interval": 5
   },
@@ -109,6 +131,54 @@
         "read": true,
         "write": false,
         "def": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.aToken",
+      "type": "state",
+      "common": {
+        "name": "Access Token",
+        "type": "string",
+        "read": false,
+        "write": false,
+        "def": ""
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.rToken",
+      "type": "state",
+      "common": {
+        "name": "Refresh Token",
+        "type": "string",
+        "read": false,
+        "write": false,
+        "def": ""
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.expiresAt",
+      "type": "state",
+      "common": {
+        "name": "Token expiration timestamp",
+        "type": "number",
+        "read": false,
+        "write": false,
+        "def": 0
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.code",
+      "type": "state",
+      "common": {
+        "name": "Token expiration timestamp",
+        "type": "string",
+        "read": false,
+        "write": false,
+        "def": ""
       },
       "native": {}
     }
