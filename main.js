@@ -11,6 +11,7 @@ const axios = require("axios").default;
 const https = require("https");
 const fs = require("fs");
 const { extractKeys } = require("./lib/extractKeys");
+const crypto = require('crypto');
 
 class Psa extends utils.Adapter {
   /**
@@ -24,6 +25,10 @@ class Psa extends utils.Adapter {
     this.on("ready", this.onReady.bind(this));
     this.on("unload", this.onUnload.bind(this));
 
+    this.requestClient = axios.create({
+      withCredentials: true,
+      timeout: 3 * 60 * 1000, //3min client timeout
+    });
     this.extractKeys = extractKeys;
     this.idArray = [];
     this.brands = {
@@ -35,6 +40,7 @@ class Psa extends utils.Adapter {
         siteCode: "AP_DE_ESP",
         shortBrand: "AP",
         url: "mw-ap-rp.mym.awsmpsa.com",
+        redirectUri: "mymap://oauth2redirect/de",
       },
       citroen: {
         brand: "citroen.com",
@@ -44,6 +50,7 @@ class Psa extends utils.Adapter {
         siteCode: "AC_DE_ESP",
         shortBrand: "AC",
         url: "mw-ac-rp.mym.awsmpsa.com",
+        redirectUri: "mymacsdk://oauth2redirect/de", //mymacsdk
       },
       driveds: {
         brand: "driveds.com",
@@ -53,6 +60,7 @@ class Psa extends utils.Adapter {
         siteCode: "DS_DE_ESP",
         shortBrand: "DS",
         url: "mw-ds-rp.mym.awsmpsa.com",
+        redirectUri: "mymdssdk://oauth2redirect/de",
       },
       opel: {
         brand: "opel.com",
@@ -62,6 +70,7 @@ class Psa extends utils.Adapter {
         siteCode: "OP_DE_ESP",
         shortBrand: "OP",
         url: "mw-op-rp.mym.awsmpsa.com",
+        redirectUri: "mymopsdk://oauth2redirect/de",
       },
     };
   }
@@ -72,8 +81,22 @@ class Psa extends utils.Adapter {
   async onReady() {
     // Initialize your adapter here
 
+    /*var tmpObj = await this.getStateAsync(this.namespace + ".info.code");
+    if(!tmpObj) {
+      this.setState("info.code", "", true);
+      this.setState("info.expiresAt", 0, true);
+      this.setState("info.aToken", "", true);
+      this.setState("info.rToken", "", true);
+    }*/
+
+    
     if (!this.config.type) {
       this.log.warn("Please select type in settings");
+      return;
+    }
+
+    if (!this.config.auth_code) {
+      this.log.warn("Please enter authorization code in settings");
       return;
     }
 
@@ -86,10 +109,35 @@ class Psa extends utils.Adapter {
       pfx: fs.readFileSync(__dirname + "/certs/mwp.dat"),
       passphrase: "y5Y2my5B",
     });
-    this.login()
-      .then(() => {
+
+    var tmpObj = await this.getStateAsync(this.namespace + ".info.code");
+    this.code = tmpObj.val;
+    if(this.code !== this.config.auth_code) {
+      this.setState("info.code", this.config.auth_code, true);
+      this.setState("info.expiresAt", 0, true);
+    }
+
+    var tmpObj = await this.getStateAsync(this.namespace + ".info.expiresAt");
+    this.expiresAt = tmpObj.val;
+    tmpObj = await this.getStateAsync(this.namespace + ".info.aToken");
+    this.aToken = tmpObj.val;
+    tmpObj = await this.getStateAsync(this.namespace + ".info.rToken");
+    this.rToken = tmpObj.val;
+    
+      try {
+        if(Date.now() > this.expiresAt) {
+          this.log.warn("Stored token is expired");
+          throw "Stored token is expired";
+        }
+        this.log.info("Trying to reuse stored token");
+        this.refreshToken().then(() => {
+        this.refreshTokenInterval = setInterval(() => {
+          this.refreshToken().catch((error) => {
+            this.log.error("Refresh token failed");
+          });
+        }, 60 * 60 * 1000);
+
         this.setState("info.connection", true, true);
-        this.log.info("Login successful");
         this.getVehicles()
           .then(() => {
             this.idArray.forEach((element) => {
@@ -119,11 +167,51 @@ class Psa extends utils.Adapter {
           .catch(() => {
             this.log.error("Get vehicles failed");
           });
-      })
-      .catch(() => {
-        this.log.error("Login failed");
+        });
+      }
+      catch (error) {
+        this.log.error("Reuse token failed. Login again.");
         this.setState("info.connection", false, true);
-      });
+        this.loginAuthCode(this.config.auth_code)
+          .then(() => {
+            this.setState("info.connection", true, true);
+            this.log.info("Login successful");
+            this.getVehicles()
+              .then(() => {
+                this.idArray.forEach((element) => {
+                  this.getRequest(
+                    "https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/status",
+                    element.vin + ".status",
+                  ).catch(() => {
+                    this.log.error("Get device status failed");
+                    this.log.info("Remove device " + element.vin + " from list");
+                    const index = this.idArray.indexOf(element);
+                    if (index !== -1) {
+                      this.idArray.splice(index, 1);
+                    }
+                  });
+                });
+                this.appUpdateInterval = setInterval(() => {
+                  this.idArray.forEach((element) => {
+                    this.getRequest(
+                      "https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/status",
+                      element.vin + ".status",
+                    ).catch(() => {
+                      this.log.error("Get device status failed");
+                    });
+                  });
+                }, this.config.interval * 60 * 1000);
+              })
+              .catch(() => {
+                this.log.error("Get vehicles failed");
+              });
+          })
+          .catch(() => {
+            this.log.error("Login failed");
+            this.setState("info.connection", false, true);
+          });
+        }
+
     try {
       this.receiveOldApi()
         .then(() => {
@@ -151,7 +239,7 @@ class Psa extends utils.Adapter {
     }
   }
 
-  login() {
+  loginAuthCode(authorization_code) {
     return new Promise((resolve, reject) => {
       axios({
         method: "post",
@@ -161,13 +249,12 @@ class Psa extends utils.Adapter {
           Authorization: "Basic " + this.brands[this.config.type].basic,
         },
         data:
-          "realm=" +
-          this.brands[this.config.type].realm +
-          "&grant_type=password&password=" +
-          encodeURIComponent(this.config.password) +
-          "&username=" +
-          encodeURIComponent(this.config.user) +
-          "&scope=profile%20openid",
+          "grant_type=authorization_code&code=" +
+          encodeURIComponent(authorization_code) +
+          "&redirect_uri=" +
+          encodeURIComponent(this.brands[this.config.type].redirectUri) +
+          "&code_verifier=" +
+          encodeURIComponent(this.config.code_verifier)
       })
         .then((response) => {
           if (!response.data) {
@@ -178,6 +265,10 @@ class Psa extends utils.Adapter {
           this.log.debug(JSON.stringify(response.data));
           this.aToken = response.data.access_token;
           this.rToken = response.data.refresh_token;
+          this.expiresAt = Date.now() + (response.data.expires_in*1000);
+          this.setState("info.aToken", this.aToken, true);
+          this.setState("info.rToken", this.rToken, true);
+          this.setState("info.expiresAt", this.expiresAt, true);
           this.refreshTokenInterval = setInterval(() => {
             this.refreshToken().catch((error) => {
               this.log.error("Refresh token failed");
@@ -189,6 +280,8 @@ class Psa extends utils.Adapter {
           this.log.error(error);
           this.log.error("Login failed");
           error.response && this.log.error(JSON.stringify(error.response.data));
+          this.config.auth_code = "";
+          this.log.error("Renew authorization code");
           reject();
         });
     });
@@ -471,6 +564,10 @@ class Psa extends utils.Adapter {
           this.log.debug(JSON.stringify(response.data));
           this.aToken = response.data.access_token;
           this.rToken = response.data.refresh_token;
+          this.expiresAt = Date.now() + (response.data.expires_in*1000);
+          this.setState("info.aToken", this.aToken, true);
+          this.setState("info.rToken", this.rToken, true);
+          this.setState("info.expiresAt", this.expiresAt, true);
           resolve();
         })
         .catch((error) => {
