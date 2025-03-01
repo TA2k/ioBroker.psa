@@ -12,7 +12,6 @@ const https = require("https");
 const Json2iob = require("json2iob");
 
 const fs = require("fs");
-const { extractKeys } = require("./lib/extractKeys");
 // const crypto = require("crypto");
 
 class Psa extends utils.Adapter {
@@ -135,6 +134,7 @@ class Psa extends utils.Adapter {
       this.refreshToken().then(() => {
         this.refreshTokenInterval = setInterval(() => {
           this.refreshToken().catch((error) => {
+            this.log.error(error);
             this.log.error("Refresh token failed");
           });
         }, 60 * 60 * 1000);
@@ -171,6 +171,7 @@ class Psa extends utils.Adapter {
           });
       });
     } catch (error) {
+      this.log.error(error);
       this.log.error("Reuse token failed. Login again.");
       this.setState("info.connection", false, true);
       this.loginAuthCode(this.config.auth_code)
@@ -218,12 +219,12 @@ class Psa extends utils.Adapter {
         .then(() => {
           this.log.info("OldAPI Login succesful, but only mileage is available");
           this.oldApiUpdateInterval = setInterval(() => {
-            this.receiveOldApi().catch((error) => {
+            this.receiveOldApi().catch((_error) => {
               this.log.warn("OldAPI Status failed");
             });
           }, this.config.interval * 60 * 1000);
         })
-        .catch((error) => {
+        .catch((_error) => {
           this.log.warn("OldAPI Login failed, only relevant for non eletric cars");
         });
     } catch (error) {
@@ -271,7 +272,7 @@ class Psa extends utils.Adapter {
           this.setState("info.rToken", this.rToken, true);
           this.setState("info.expiresAt", this.expiresAt, true);
           this.refreshTokenInterval = setInterval(() => {
-            this.refreshToken().catch((error) => {
+            this.refreshToken().catch((_error) => {
               this.log.error("Refresh token failed");
             });
           }, 60 * 60 * 1000);
@@ -647,7 +648,7 @@ class Psa extends utils.Adapter {
               .then(() => {
                 resolve();
               })
-              .catch((error) => {
+              .catch((_error) => {
                 this.log.error("Refreshtoken failed");
                 reject();
               });
