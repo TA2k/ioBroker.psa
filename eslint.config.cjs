@@ -2,51 +2,51 @@ const globals = require("globals");
 const js = require("@eslint/js");
 
 const {
-    FlatCompat,
+  FlatCompat,
 } = require("@eslint/eslintrc");
 
 const compat = new FlatCompat({
-    baseDirectory: __dirname,
-    recommendedConfig: js.configs.recommended,
-    allConfig: js.configs.all
+  baseDirectory: __dirname,
+  recommendedConfig: js.configs.recommended,
+  allConfig: js.configs.all
 });
 
 module.exports = [{
-    ignores: ["**/.prettierrc.js", "**/.eslintrc.js"],
+  ignores: ["**/.prettierrc.js", "**/.eslintrc.js"],
 }, ...compat.extends("eslint:recommended"), {
-    plugins: {},
+  plugins: {},
 
-    languageOptions: {
-        globals: {
-            ...globals.node,
-            ...globals.mocha,
-        },
-
-        ecmaVersion: 2020,
-        sourceType: "commonjs",
+  languageOptions: {
+    globals: {
+      ...globals.node,
+      ...globals.mocha,
     },
 
-    rules: {
-        indent: ["error", 2, {
-            SwitchCase: 1,
-        }],
+    ecmaVersion: 2020,
+    sourceType: "commonjs",
+  },
 
-        "no-console": "off",
+  rules: {
+    indent: ["error", 2, {
+      SwitchCase: 1,
+    }],
 
-        "no-unused-vars": ["error", {
-            ignoreRestSiblings: true,
-            argsIgnorePattern: "^_",
-        }],
+    "no-console": "off",
 
-        "no-var": "error",
-        "no-trailing-spaces": "error",
-        "prefer-const": "error",
+    "no-unused-vars": ["error", {
+      ignoreRestSiblings: true,
+      argsIgnorePattern: "^_",
+    }],
 
-        quotes: ["error", "double", {
-            avoidEscape: true,
-            allowTemplateLiterals: true,
-        }],
+    "no-var": "error",
+    "no-trailing-spaces": "error",
+    "prefer-const": "error",
 
-        semi: ["error", "always"],
-    },
+    quotes: ["error", "double", {
+      avoidEscape: true,
+      allowTemplateLiterals: true,
+    }],
+
+    semi: ["error", "always"],
+  },
 }];

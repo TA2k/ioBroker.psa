@@ -9,9 +9,11 @@
 const utils = require("@iobroker/adapter-core");
 const axios = require("axios").default;
 const https = require("https");
+const Json2iob = require("json2iob");
+
 const fs = require("fs");
 const { extractKeys } = require("./lib/extractKeys");
-const crypto = require('crypto');
+// const crypto = require("crypto");
 
 class Psa extends utils.Adapter {
   /**
@@ -29,7 +31,8 @@ class Psa extends utils.Adapter {
       withCredentials: true,
       timeout: 3 * 60 * 1000, //3min client timeout
     });
-    this.extractKeys = extractKeys;
+
+    this.json2iob = new Json2iob(this);
     this.idArray = [];
     this.brands = {
       peugeot: {
@@ -89,7 +92,6 @@ class Psa extends utils.Adapter {
       this.setState("info.rToken", "", true);
     }*/
 
-    
     if (!this.config.type) {
       this.log.warn("Please select type in settings");
       return;
@@ -110,27 +112,27 @@ class Psa extends utils.Adapter {
       passphrase: "y5Y2my5B",
     });
 
-    var tmpObj = await this.getStateAsync(this.namespace + ".info.code");
+    let tmpObj = await this.getStateAsync(this.namespace + ".info.code");
     this.code = tmpObj.val;
-    if(this.code !== this.config.auth_code) {
+    if (this.code !== this.config.auth_code) {
       this.setState("info.code", this.config.auth_code, true);
       this.setState("info.expiresAt", 0, true);
     }
 
-    var tmpObj = await this.getStateAsync(this.namespace + ".info.expiresAt");
+    tmpObj = await this.getStateAsync(this.namespace + ".info.expiresAt");
     this.expiresAt = tmpObj.val;
     tmpObj = await this.getStateAsync(this.namespace + ".info.aToken");
     this.aToken = tmpObj.val;
     tmpObj = await this.getStateAsync(this.namespace + ".info.rToken");
     this.rToken = tmpObj.val;
-    
-      try {
-        if(Date.now() > this.expiresAt) {
-          this.log.warn("Stored token is expired");
-          throw "Stored token is expired";
-        }
-        this.log.info("Trying to reuse stored token");
-        this.refreshToken().then(() => {
+
+    try {
+      if (Date.now() > this.expiresAt) {
+        this.log.warn("Stored token is expired");
+        throw "Stored token is expired";
+      }
+      this.log.info("Trying to reuse stored token");
+      this.refreshToken().then(() => {
         this.refreshTokenInterval = setInterval(() => {
           this.refreshToken().catch((error) => {
             this.log.error("Refresh token failed");
@@ -167,50 +169,49 @@ class Psa extends utils.Adapter {
           .catch(() => {
             this.log.error("Get vehicles failed");
           });
-        });
-      }
-      catch (error) {
-        this.log.error("Reuse token failed. Login again.");
-        this.setState("info.connection", false, true);
-        this.loginAuthCode(this.config.auth_code)
-          .then(() => {
-            this.setState("info.connection", true, true);
-            this.log.info("Login successful");
-            this.getVehicles()
-              .then(() => {
+      });
+    } catch (error) {
+      this.log.error("Reuse token failed. Login again.");
+      this.setState("info.connection", false, true);
+      this.loginAuthCode(this.config.auth_code)
+        .then(() => {
+          this.setState("info.connection", true, true);
+          this.log.info("Login successful");
+          this.getVehicles()
+            .then(() => {
+              this.idArray.forEach((element) => {
+                this.getRequest(
+                  "https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/status",
+                  element.vin + ".status",
+                ).catch(() => {
+                  this.log.error("Get device status failed");
+                  this.log.info("Remove device " + element.vin + " from list");
+                  const index = this.idArray.indexOf(element);
+                  if (index !== -1) {
+                    this.idArray.splice(index, 1);
+                  }
+                });
+              });
+              this.appUpdateInterval = setInterval(() => {
                 this.idArray.forEach((element) => {
                   this.getRequest(
                     "https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/status",
                     element.vin + ".status",
                   ).catch(() => {
                     this.log.error("Get device status failed");
-                    this.log.info("Remove device " + element.vin + " from list");
-                    const index = this.idArray.indexOf(element);
-                    if (index !== -1) {
-                      this.idArray.splice(index, 1);
-                    }
                   });
                 });
-                this.appUpdateInterval = setInterval(() => {
-                  this.idArray.forEach((element) => {
-                    this.getRequest(
-                      "https://api.groupe-psa.com/connectedcar/v4/user/vehicles/" + element.id + "/status",
-                      element.vin + ".status",
-                    ).catch(() => {
-                      this.log.error("Get device status failed");
-                    });
-                  });
-                }, this.config.interval * 60 * 1000);
-              })
-              .catch(() => {
-                this.log.error("Get vehicles failed");
-              });
-          })
-          .catch(() => {
-            this.log.error("Login failed");
-            this.setState("info.connection", false, true);
-          });
-        }
+              }, this.config.interval * 60 * 1000);
+            })
+            .catch(() => {
+              this.log.error("Get vehicles failed");
+            });
+        })
+        .catch(() => {
+          this.log.error("Login failed");
+          this.setState("info.connection", false, true);
+        });
+    }
 
     try {
       this.receiveOldApi()
@@ -254,7 +255,7 @@ class Psa extends utils.Adapter {
           "&redirect_uri=" +
           encodeURIComponent(this.brands[this.config.type].redirectUri) +
           "&code_verifier=" +
-          encodeURIComponent(this.config.code_verifier)
+          encodeURIComponent(this.config.code_verifier),
       })
         .then((response) => {
           if (!response.data) {
@@ -265,7 +266,7 @@ class Psa extends utils.Adapter {
           this.log.debug(JSON.stringify(response.data));
           this.aToken = response.data.access_token;
           this.rToken = response.data.refresh_token;
-          this.expiresAt = Date.now() + (response.data.expires_in*1000);
+          this.expiresAt = Date.now() + response.data.expires_in * 1000;
           this.setState("info.aToken", this.aToken, true);
           this.setState("info.rToken", this.rToken, true);
           this.setState("info.expiresAt", this.expiresAt, true);
@@ -401,7 +402,7 @@ class Psa extends utils.Adapter {
       .then((response) => {
         this.log.debug(JSON.stringify(response.data));
         if (response.data.success) {
-          this.extractKeys(this, "newApi", response.data.success);
+          this.json2iob.parse("newApi", response.data.success);
         }
       })
       .catch((error) => {
@@ -488,7 +489,7 @@ class Psa extends utils.Adapter {
             .then((response) => {
               this.log.debug(JSON.stringify(response.data));
               if (response.data.success) {
-                this.extractKeys(this, "oldApi", response.data.success);
+                this.json2iob.parse("oldApi", response.data.success);
               }
               resolve();
             })
@@ -564,7 +565,7 @@ class Psa extends utils.Adapter {
           this.log.debug(JSON.stringify(response.data));
           this.aToken = response.data.access_token;
           this.rToken = response.data.refresh_token;
-          this.expiresAt = Date.now() + (response.data.expires_in*1000);
+          this.expiresAt = Date.now() + response.data.expires_in * 1000;
           this.setState("info.aToken", this.aToken, true);
           this.setState("info.rToken", this.rToken, true);
           this.setState("info.expiresAt", this.expiresAt, true);
@@ -591,7 +592,7 @@ class Psa extends utils.Adapter {
       })
         .then((response) => {
           this.log.debug(JSON.stringify(response.data));
-          this.extractKeys(this, "user", response.data);
+          this.json2iob.parse("user", response.data);
           response.data["_embedded"].vehicles.forEach(async (element) => {
             this.idArray.push({ id: element.id, vin: element.vin });
             await this.setObjectNotExistsAsync(element.vin, {
@@ -636,7 +637,7 @@ class Psa extends utils.Adapter {
       })
         .then((response) => {
           this.log.debug(JSON.stringify(response.data));
-          this.extractKeys(this, path, response.data, "type");
+          this.json2iob.parse(path, response.data, { preferedArrayName: "type" });
           resolve();
         })
         .catch((error) => {
@@ -673,6 +674,7 @@ class Psa extends utils.Adapter {
     try {
       callback();
     } catch (e) {
+      this.log.error("Unload failed: " + e);
       callback();
     }
   }
