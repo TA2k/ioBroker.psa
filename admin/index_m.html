@@ -1,230 +1,239 @@
 <html>
-    <head>
-        <!-- Load ioBroker scripts and styles-->
-        <link rel="stylesheet" type="text/css" href="../../css/adapter.css" />
-        <link rel="stylesheet" type="text/css" href="../../lib/css/materialize.css" />
+  <head>
+    <!-- Load ioBroker scripts and styles-->
+    <link rel="stylesheet" type="text/css" href="../../css/adapter.css" />
+    <link rel="stylesheet" type="text/css" href="../../lib/css/materialize.css" />
 
-        <script type="text/javascript" src="../../lib/js/jquery-3.2.1.min.js"></script>
-        <script type="text/javascript" src="../../socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="../../lib/js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="../../socket.io/socket.io.js"></script>
 
-        <script type="text/javascript" src="../../js/translate.js"></script>
-        <script type="text/javascript" src="../../lib/js/materialize.js"></script>
-        <script type="text/javascript" src="../../js/adapter-settings.js"></script>
+    <script type="text/javascript" src="../../js/translate.js"></script>
+    <script type="text/javascript" src="../../lib/js/materialize.js"></script>
+    <script type="text/javascript" src="../../js/adapter-settings.js"></script>
 
-        <!-- Load our own files -->
-        <link rel="stylesheet" type="text/css" href="style.css" />
-        <script type="text/javascript" src="words.js"></script>
-        <script type="text/javascript" src="index_m.js"></script>
+    <!-- Load our own files -->
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <script type="text/javascript" src="words.js"></script>
+    <script type="text/javascript" src="index_m.js"></script>
 
-        <script type="text/javascript">
+    <script type="text/javascript">
+      const brands = {
+        peugeot: {
+          brand: 'peugeot.com',
+          clientId: '1eebc2d5-5df3-459b-a624-20abfcf82530',
+          siteCode: 'AP_DE_ESP',
+          redirectUri: 'mymap://oauth2redirect/de',
+        },
+        citroen: {
+          brand: 'citroen.com',
+          clientId: '5364defc-80e6-447b-bec6-4af8d1542cae',
+          siteCode: 'AC_DE_ESP',
+          redirectUri: 'mymacsdk://oauth2redirect/de',
+        },
+        driveds: {
+          brand: 'driveds.com',
+          clientId: 'cbf74ee7-a303-4c3d-aba3-29f5994e2dfa',
+          siteCode: 'DS_DE_ESP',
+          redirectUri: 'mymdssdk://oauth2redirect/de',
+        },
+        opel: {
+          brand: 'opel.com',
+          clientId: 'fcb553f4-574b-4740-9005-86f563eeeb88',
+          siteCode: 'OP_DE_ESP',
+          redirectUri: 'mymop://oauth2redirect/de',
+        },
+      };
 
-            const brands = {
-                peugeot: {
-                    brand: "peugeot.com",
-                    clientId: "1eebc2d5-5df3-459b-a624-20abfcf82530",
-                    siteCode: "AP_DE_ESP",
-                    redirectUri: "mymap://oauth2redirect/de",
-                },
-                citroen: {
-                    brand: "citroen.com",
-                    clientId: "5364defc-80e6-447b-bec6-4af8d1542cae",
-                    siteCode: "AC_DE_ESP",
-                    redirectUri: "mymacsdk://oauth2redirect/de",
-                },
-                driveds: {
-                    brand: "driveds.com",
-                    clientId: "cbf74ee7-a303-4c3d-aba3-29f5994e2dfa",
-                    siteCode: "DS_DE_ESP",
-                    redirectUri: "mymdssdk://oauth2redirect/de",
-                },
-                opel: {
-                    brand: "opel.com",
-                    clientId: "07364655-93cb-4194-8158-6b035ac2c24c",
-                    siteCode: "OP_DE_ESP",
-                    redirectUri: "mymopsdk://oauth2redirect/de",
-                },
-            };
+      // This will be called by the admin adapter when the settings page loads
+      function load(settings, onChange) {
+        // example: select elements with id=key and class=value and insert value
+        if (!settings) return;
+        $('.value').each(function () {
+          var $key = $(this);
+          var id = $key.attr('id');
+          if ($key.attr('type') === 'checkbox') {
+            // do not call onChange direct, because onChange could expect some arguments
+            $key.prop('checked', settings[id]).on('change', () => onChange());
+          } else {
+            // do not call onChange direct, because onChange could expect some arguments
 
-            // This will be called by the admin adapter when the settings page loads
-            function load(settings, onChange) {
+            if (id === 'type') {
+              updateLoginLink(settings[id]);
 
-                // example: select elements with id=key and class=value and insert value
-                if (!settings) return;
-                $(".value").each(function () {
-                    var $key = $(this);
-                    var id = $key.attr("id");
-                    if ($key.attr("type") === "checkbox") {
-                        // do not call onChange direct, because onChange could expect some arguments
-                        $key.prop("checked", settings[id]).on("change", () => onChange());
-                    } else {
-                        // do not call onChange direct, because onChange could expect some arguments
-                        
-                        if(id === 'type') {
-                            updateLoginLink(settings[id]);
-
-                            $('#type').on('change', function () {
-                                updateLoginLink($(this).val());
-                            });
-                        }
-
-                        if(id !== 'code_verifier') {
-                            $key.val(settings[id])
-                                .on("change", () => onChange())
-                                .on("keyup", () => onChange());
-                        }
-                        
-
-                    }
-                });
-                onChange(false);
-                // reinitialize all the Materialize labels on the page if you are dynamically adding inputs:
-                if (M) M.updateTextFields();
+              $('#type').on('change', function () {
+                updateLoginLink($(this).val());
+              });
             }
 
-            function updateLoginLink(brandType) {
-                var authorizeEndpoint = "https://idpcvs." + brands[brandType].brand + "/am/oauth2/authorize"; //"https://idpcvs.citroen.com/am/oauth2/authorize";
-                var tokenEndpoint = "https://idpcvs." + brands[brandType].brand + "/am/oauth2/access_token"; //"https://idpcvs.citroen.com/am/oauth2/access_token";
-                var clientId = brands[brandType].clientId; //"5364defc-80e6-447b-bec6-4af8d1542cae";
-
-                var codeVerifier = generateRandomString(64);
-                
-                const challengeMethod = crypto.subtle ? "S256" : "plain"
-    
-                Promise.resolve()
-                    .then(() => {
-                        if (challengeMethod === 'S256') {
-                            return generateCodeChallenge(codeVerifier)
-                        } else {
-                            return codeVerifier
-                        }
-                    })
-                    .then(function(codeChallenge) {
-                        document.getElementById('code_verifier').value = codeVerifier;
-    
-                        var redirectUri = brands[brandType].redirectUri; //"mymacsdk://oauth2redirect/de"
-                        var args = new URLSearchParams({
-                            response_type: "code",
-                            client_id: clientId,
-                            code_challenge_method: challengeMethod,
-                            code_challenge: codeChallenge,
-                            redirect_uri: redirectUri,
-                            siteCode: brands[brandType].siteCode,
-                            scope: "openid profile",
-                            state: "Drmhze6EPcv0fN_81Bj-nA"
-                        });
-                        var a = document.getElementById('loginLinkAC');
-                        a.href = authorizeEndpoint + "?" + args;
-                });                
+            if (id !== 'code_verifier') {
+              $key
+                .val(settings[id])
+                .on('change', () => onChange())
+                .on('keyup', () => onChange());
             }
+          }
+        });
+        onChange(false);
+        // reinitialize all the Materialize labels on the page if you are dynamically adding inputs:
+        if (M) M.updateTextFields();
+      }
 
-            // This will be called by the admin adapter when the user presses the save button
-            function save(callback) {
-                // example: select elements with class=value and build settings object
-                var obj = {};
-                $(".value").each(function () {
-                    var $this = $(this);
-                    if ($this.attr("type") === "checkbox") {
-                        obj[$this.attr("id")] = $this.prop("checked");
-                    } else if ($this.attr("type") === "number") {
-                        obj[$this.attr("id")] = parseFloat($this.val());
-                    } else {
-                        obj[$this.attr("id")] = $this.val();
-                    }
-                });
-                callback(obj);
+      function updateLoginLink(brandType) {
+        var authorizeEndpoint = 'https://idpcvs.' + brands[brandType].brand + '/am/oauth2/authorize'; //"https://idpcvs.citroen.com/am/oauth2/authorize";
+        var tokenEndpoint = 'https://idpcvs.' + brands[brandType].brand + '/am/oauth2/access_token'; //"https://idpcvs.citroen.com/am/oauth2/access_token";
+        var clientId = brands[brandType].clientId; //"5364defc-80e6-447b-bec6-4af8d1542cae";
+
+        var codeVerifier = generateRandomString(64);
+
+        const challengeMethod = crypto.subtle ? 'S256' : 'plain';
+
+        Promise.resolve()
+          .then(() => {
+            if (challengeMethod === 'S256') {
+              return generateCodeChallenge(codeVerifier);
+            } else {
+              return codeVerifier;
             }
+          })
+          .then(function (codeChallenge) {
+            document.getElementById('code_verifier').value = codeVerifier;
 
-            async function generateCodeChallenge(codeVerifier) {
-                var digest = await crypto.subtle.digest("SHA-256",
-                    new TextEncoder().encode(codeVerifier));
-    
-                return btoa(String.fromCharCode(...new Uint8Array(digest)))
-                    .replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
-            }
-    
-            function generateRandomString(length) {
-                var text = "";
-                var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    
-                for (var i = 0; i < length; i++) {
-                    text += possible.charAt(Math.floor(Math.random() * possible.length));
-                }
-    
-                return text;
-            }                
-        </script>
+            var redirectUri = brands[brandType].redirectUri; //"mymacsdk://oauth2redirect/de"
+            var args = new URLSearchParams({
+            locale:'de-DE',
+              response_type: 'code',
+              client_id: clientId,
+              code_challenge_method: challengeMethod,
+              code_challenge: codeChallenge,
+              redirect_uri: redirectUri,
+              siteCode: brands[brandType].siteCode,
+              scope: 'openid profile email',
+              state: 'Drmhze6EPcv0fN_81Bj-nA',
+            });
+            var a = document.getElementById('loginLinkAC');
+            a.href = authorizeEndpoint + '?' + args;
+          });
+      }
 
-    </head>
+      // This will be called by the admin adapter when the user presses the save button
+      function save(callback) {
+        // example: select elements with class=value and build settings object
+        var obj = {};
+        $('.value').each(function () {
+          var $this = $(this);
+          if ($this.attr('type') === 'checkbox') {
+            obj[$this.attr('id')] = $this.prop('checked');
+          } else if ($this.attr('type') === 'number') {
+            obj[$this.attr('id')] = parseFloat($this.val());
+          } else {
+            obj[$this.attr('id')] = $this.val();
+          }
+        });
+        callback(obj);
+      }
 
-    <body>
-        <div class="m adapter-container">
-            <div class="row">
-                <div class="col s12 m4 l2">
-                    <img src="psa.png" class="logo" />
-                </div>
-            </div>
+      async function generateCodeChallenge(codeVerifier) {
+        var digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(codeVerifier));
 
-            <!-- Put your content here -->
+        return btoa(String.fromCharCode(...new Uint8Array(digest)))
+          .replace(/=/g, '')
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_');
+      }
 
-            <!-- For example columns with settings: -->
-            <div class="row">
-                <div class="col s6 input-field">
-                    <input type="text" class="value" id="user" />
-                    <label for="user" class="translate">My... App Email</label>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col s6 input-field">
-                    <input type="password" class="value" id="password" />
-                    <label for="password" class="translate">My.... App Password</label>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col s2 input-field">
-                    <select id="type" class="value">
-                        <option value="peugeot">Peugeot</option>
-                        <option value="citroen">Citroen</option>
-                        <option value="driveds">DS</option>
-                        <option value="opel">Opel</option>
-                    </select>
-                    <label for="type" class="translate">Type</label>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col s12">
-                    <div class="card-panel linkDesign" style="background-color:#174475;">
-                        <span class="white-text translate">After selecting vehicle type click on Login Link to login on the vendors homepage. <br>
-                                                           Signin with your login data for the PSA app. <br>
-                                                           When you see 'Login successfull', open the developper tools (F12). <br>
-                                                           Hit the final 'OK' button and find the authorization code in the network tab of the developper tools. <br>
-                                                           Copy the code and paste it to the Authorization Code prompt on this configuration page. <br> </span>
-                        <span><a style="color: #1e88e5!important;" href="https://github.com/flobz/psa_car_controller/discussions/779" target="_blank" class="translate"> *** More information here ***</a></span>
-                    </div>
-                </div>
-            </div>
-            <div class="row cLoginLinkAC">
-                <div class="col s6 input-field">
-                    <a id="loginLinkAC" href="https://idpcvs.citroen.com/am/oauth2/authorize?response_type=code&client_id=5364defc-80e6-447b-bec6-4af8d1542cae&redirect_uri=mymacsdk://oauth2redirect/de&scope=openid+profile&state=Drmhze6EPcv0fN_81Bj-nA&code_challenge=5C1HXuvfGjAo-6TVzy_95lQNmpAjorsngCwiD3w3VHs&code_challenge_method=S256" target="_blank">Login Page</a>
-                </div>
-            </div>
-            <div hidden class="row">
-                <div class="col s6 input-field">
-                    <input type="text" class="value" id="code_verifier" />
-                    <label for="code_verifier" class="translate">Code Verifier</label>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col s6 input-field">
-                    <input type="text" class="value" id="auth_code" />
-                    <label for="auth_code" class="translate">Authorization Code</label>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col s2 input-field">
-                    <input type="number" class="value" id="interval" />
-                    <label for="interval" class="translate">Update interval in minutes</label>
-                </div>
-            </div>
+      function generateRandomString(length) {
+        var text = '';
+        var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+        for (var i = 0; i < length; i++) {
+          text += possible.charAt(Math.floor(Math.random() * possible.length));
+        }
+
+        return text;
+      }
+    </script>
+  </head>
+
+  <body>
+    <div class="m adapter-container">
+      <div class="row">
+        <div class="col s12 m4 l2">
+          <img src="psa.png" class="logo" />
         </div>
-    </body>
+      </div>
+
+      <!-- Put your content here -->
+
+      <!-- For example columns with settings: -->
+
+      <div class="row">
+        <div class="col s2 input-field">
+          <select id="type" class="value">
+            <option value="peugeot">Peugeot</option>
+            <option value="citroen">Citroen</option>
+            <option value="driveds">DS</option>
+            <option value="opel">Opel</option>
+          </select>
+          <label for="type" class="translate">Type</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col s12">
+            <div class="col s6 input-field" id="codeInfo">
+                1. Open the red Url below in Google Chrome or Firefox and login with your account until you see an OK button. Press the OK button.
+                <p></p>
+                2. Open Developer Console F12 or Option + Command + I
+                <p></p>
+                3. You see a failed redirect in the Console. Copy the blue mymopsdk:// url
+                <p></p>
+                <img src="copyurl.png" style="width: 30rem" />
+                <p></p>
+                4. Paste the url or the code in the input field below
+                <p></p>
+          <div class="card-panel linkDesign" style="background-color: #2e2f31">
+
+            <span
+              ><a
+                style="color: #1e88e5 !important"
+                href="https://github.com/flobz/psa_car_controller/discussions/779"
+                target="_blank"
+                class="translate"
+              >
+                *** More information here ***</a
+              ></span
+            >
+          </div>
+        </div>
+      </div>
+      <div class="row cLoginLinkAC">
+        <div class="col s6 input-field">
+          <a
+            style="color: red !important; border: 2px solid blue"
+            id="loginLinkAC"
+            href="https://idpcvs.citroen.com/am/oauth2/authorize?response_type=code&client_id=5364defc-80e6-447b-bec6-4af8d1542cae&redirect_uri=mymacsdk://oauth2redirect/de&scope=openid+profile&state=Drmhze6EPcv0fN_81Bj-nA&code_challenge=5C1HXuvfGjAo-6TVzy_95lQNmpAjorsngCwiD3w3VHs&code_challenge_method=S256"
+            target="_blank"
+            >Login Page</a
+          >
+        </div>
+      </div>
+      <div hidden class="row">
+        <div class="col s6 input-field">
+          <input type="text" class="value" id="code_verifier" />
+          <label for="code_verifier" class="translate">Code Verifier</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col s12 input-field">
+          <input type="text" class="value" id="auth_code" />
+          <label for="auth_code" class="translate">Authorization URL/Code</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col s2 input-field">
+          <input type="number" class="value" id="interval" />
+          <label for="interval" class="translate">Update interval in minutes</label>
+        </div>
+      </div>
+    </div>
+  </body>
 </html>
