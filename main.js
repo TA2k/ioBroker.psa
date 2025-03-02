@@ -129,12 +129,14 @@ class Psa extends utils.Adapter {
     if (sessionState) {
       this.session = JSON.parse(sessionState.val);
       if (this.session.refresh_token) {
+        this.log.info("Found old session. Try to refresh token");
         await this.refreshToken();
       } else {
         return;
       }
     } else {
       if (this.config.auth_code) {
+        this.log.info("Found auth code. Try to login");
         await this.loginAuthCode();
       } else {
         this.log.warn("Please enter authorization code in settings");
