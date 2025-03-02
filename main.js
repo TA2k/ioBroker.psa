@@ -67,12 +67,12 @@ class Psa extends utils.Adapter {
       opel: {
         brand: "opel.com",
         realm: "clientsB2COpel",
-        clientId: "fcb553f4-574b-4740-9005-86f563eeeb88",
+        clientId: "07364655-93cb-4194-8158-6b035ac2c24c",
         basic: "MDczNjQ2NTUtOTNjYi00MTk0LTgxNTgtNmIwMzVhYzJjMjRjOkYya0s3bEM1a0Y1cU43dE0wd1Q4a0UzY1cxZFAwd0M1cEk2dkMwc1E1aVA1Y044Y0o4",
         siteCode: "OP_DE_ESP",
         shortBrand: "OP",
-        url: "mymop://oauth2redirect/de",
-        redirectUri: "mymopsdk://oauth2redirect/de",
+        url: "mw-op-rp.mym.awsmpsa.com",
+        redirectUri: "mymop://oauth2redirect/de",
       },
     };
   }
@@ -191,6 +191,7 @@ class Psa extends utils.Adapter {
       method: "post",
       url: "https://idpcvs." + this.brands[this.config.type].brand + "/am/oauth2/access_token",
       headers: {
+        "User-Agent": "okhttp/4.10.0",
         "Content-Type": "application/x-www-form-urlencoded",
         Authorization: "Basic " + this.brands[this.config.type].basic,
       },
@@ -515,7 +516,7 @@ class Psa extends utils.Adapter {
       })
       .catch((error) => {
         this.log.error(error);
-        this.log.error("Refreshtoken failed");
+        this.log.error("Refreshtoken failed. Please delete auth.session and restart adapter");
         error.response && this.log.error(JSON.stringify(error.response.data));
       });
   }
