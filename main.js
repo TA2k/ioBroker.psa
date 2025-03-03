@@ -124,8 +124,6 @@ class Psa extends utils.Adapter {
       if (this.session.refresh_token) {
         this.log.info("Found old session. Try to refresh token");
         await this.refreshToken();
-      } else {
-        return;
       }
     } else {
       if (this.config.auth_code) {
@@ -539,7 +537,8 @@ class Psa extends utils.Adapter {
       .then(async (response) => {
         this.log.debug(JSON.stringify(response.data));
         this.json2iob.parse("user", response.data);
-        response.data["_embedded"].vehicles.forEach(async (element) => {
+        this.log.info("Found " + response.data["_embedded"].vehicles.length + " vehicles");
+        for (const element of response.data["_embedded"].vehicles) {
           this.idArray.push({ id: element.id, vin: element.vin });
           await this.extendObject(element.vin, {
             type: "device",
@@ -555,7 +554,7 @@ class Psa extends utils.Adapter {
               this.log.error("Get Details failed");
             },
           );
-        });
+        }
       })
       .catch((error) => {
         this.log.error(error);
