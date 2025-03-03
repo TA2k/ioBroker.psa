@@ -1,9 +1,9 @@
 {
   "common": {
     "name": "psa",
-    "version": "0.0.13",
+    "version": "0.0.14",
     "news": {
-      "0.0.13": {
+      "0.0.14": {
         "en": "fix authentication method"
       },
       "0.0.12": {
