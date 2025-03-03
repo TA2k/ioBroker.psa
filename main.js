@@ -83,14 +83,7 @@ class Psa extends utils.Adapter {
   async onReady() {
     // Initialize your adapter here
 
-    /*var tmpObj = await this.getStateAsync(this.namespace + ".info.code");
-    if(!tmpObj) {
-      this.setState("info.code", "", true);
-      this.setState("info.expiresAt", 0, true);
-      this.setState("info.aToken", "", true);
-      this.setState("info.rToken", "", true);
-    }*/
-
+    this.setState("info.connection", false, true);
     if (!this.config.type) {
       this.log.warn("Please select type in settings");
       return;
@@ -515,8 +508,10 @@ class Psa extends utils.Adapter {
         this.log.debug(JSON.stringify(response.data));
         this.session = response.data;
         this.setState("auth.session", JSON.stringify(response.data), true);
+        this.setState("info.connection", true, true);
       })
       .catch((error) => {
+        this.setState("info.connection", false, true);
         this.log.error(error);
         this.log.error("Refreshtoken failed. Please delete auth.session and restart adapter");
         error.response && this.log.error(JSON.stringify(error.response.data));
@@ -582,6 +577,7 @@ class Psa extends utils.Adapter {
       .catch((error) => {
         if (error.response && error.response.status === 401) {
           this.log.info("Token expired. Try to refresh token");
+          this.setState("info.connection", false, true);
           this.refreshToken();
           return;
         }
