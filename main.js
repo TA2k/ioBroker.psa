@@ -135,8 +135,9 @@ class Psa extends utils.Adapter {
         this.log.warn("Please enter authorization code in settings");
       }
     }
-
+    this.log.info("Get vehicles");
     await this.getVehicles();
+    this.log.info("Get vehicle status");
     await this.updateVehicle();
 
     this.appUpdateInterval = setInterval(() => {
@@ -144,10 +145,7 @@ class Psa extends utils.Adapter {
     }, this.config.interval * 60 * 1000);
 
     this.refreshTokenInterval = setInterval(() => {
-      this.refreshToken().catch((error) => {
-        this.log.error(error);
-        this.log.error("Refresh token failed");
-      });
+      this.refreshToken();
     }, 60 * 60 * 1000 - 150);
 
     // try {
@@ -189,14 +187,14 @@ class Psa extends utils.Adapter {
         "User-Agent": "okhttp/4.10.0",
         "Content-Type": "application/x-www-form-urlencoded",
         Authorization: "Basic " + this.brands[this.config.type].basic,
+        Accept: "application/json",
       },
-      data:
-        "grant_type=authorization_code&code=" +
-        encodeURIComponent(this.config.auth_code) +
-        "&redirect_uri=" +
-        encodeURIComponent(this.brands[this.config.type].redirectUri) +
-        "&code_verifier=" +
-        encodeURIComponent(this.config.code_verifier),
+      data: {
+        realm: this.brands[this.config.type].realm,
+        grant_type: "authorization_code",
+        code: this.config.auth_code,
+        redirect_uri: this.brands[this.config.type].redirectUri,
+      },
     })
       .then((response) => {
         if (!response.data) {
@@ -204,9 +202,11 @@ class Psa extends utils.Adapter {
 
           return;
         }
+        this.log.info("Login succesful. Save session for relogin");
         this.log.debug(JSON.stringify(response.data));
         this.session = response.data;
         this.setState("auth.session", JSON.stringify(response.data), true);
+        this.setState("info.connection", true, true);
       })
       .catch((error) => {
         this.log.error(error);
@@ -501,16 +501,18 @@ class Psa extends utils.Adapter {
       headers: {
         accept: "application/json",
         "User-Agent": "okhttp/4.10.0",
-
         "Content-Type": "application/x-www-form-urlencoded",
         Authorization: "Basic " + this.brands[this.config.type].basic,
       },
+
       data: {
+        realm: this.brands[this.config.type].realm,
         grant_type: "refresh_token",
         refresh_token: this.session.refresh_token,
       },
     })
       .then((response) => {
+        this.log.debug("Refresh Token succesful");
         this.log.debug(JSON.stringify(response.data));
         this.session = response.data;
         this.setState("auth.session", JSON.stringify(response.data), true);
