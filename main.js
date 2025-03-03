@@ -499,10 +499,16 @@ class Psa extends utils.Adapter {
       method: "post",
       url: "https://idpcvs." + this.brands[this.config.type].brand + "/am/oauth2/access_token",
       headers: {
+        accept: "application/json",
+        "User-Agent": "okhttp/4.10.0",
+
         "Content-Type": "application/x-www-form-urlencoded",
         Authorization: "Basic " + this.brands[this.config.type].basic,
       },
-      data: "realm=" + this.brands[this.config.type].realm + "&grant_type=refresh_token&refresh_token=" + this.session.refresh_token,
+      data: {
+        grant_type: "refresh_token",
+        refresh_token: this.session.refresh_token,
+      },
     })
       .then((response) => {
         this.log.debug(JSON.stringify(response.data));
