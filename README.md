@@ -15,7 +15,23 @@
 
 PSA Adapter for Peugeot, Citroen, DS, Opel
 
+## Diagnostics
+
+The additive `diagnostics.lastSuccessfulUpdate` state records the Unix timestamp in milliseconds of the most recent successful vehicle-status response. Existing vehicle states are retained during request failures; `info.connection` reports current API reachability rather than whether a token is merely stored.
+
+## Upgrade and rollback
+
+Existing configuration keys and valid saved sessions are retained. Before upgrading, back up the ioBroker instance configuration and adapter states/objects; the session state contains OAuth credentials. See [docs/upgrade-rollback.md](docs/upgrade-rollback.md) for the compatibility details and disposable-instance rollback checklist.
+
+See [docs/compatibility-report.md](docs/compatibility-report.md) for the currently tested object/state contract and known coverage gaps, and [docs/test-report.md](docs/test-report.md) for recorded validation results and release gates.
+
 ## Changelog
+
+### 0.0.15
+
+- Hardened v4 session refresh, polling recovery, and shutdown cancellation.
+- Preserved existing native settings and documented upgrade/rollback behavior.
+- Removed unreachable legacy API runtime fallbacks; historical state objects are not deleted.
 
 0.0.8 Initial release
 

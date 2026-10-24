@@ -1,0 +1,12 @@
+{
+  "car": {
+    "gps": {
+      "latitude": 48.1,
+      "longitude": 11.6
+    },
+    "battery": {
+      "level": 80
+    }
+  },
+  "type": "vehicle"
+}

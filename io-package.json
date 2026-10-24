@@ -1,8 +1,11 @@
 {
   "common": {
     "name": "psa",
-    "version": "0.0.14",
+    "version": "0.0.15",
     "news": {
+      "0.0.15": {
+        "en": "harden v4 authentication and polling"
+      },
       "0.0.14": {
         "en": "fix authentication method"
       },

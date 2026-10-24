@@ -1,0 +1,12 @@
+{
+  "_embedded": {
+    "vehicles": [
+      {
+        "id": "veh123",
+        "vin": "VF3TEST12345",
+        "brand": "Peugeot",
+        "model": "e-208"
+      }
+    ]
+  }
+}

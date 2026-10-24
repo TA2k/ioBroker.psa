@@ -17,6 +17,7 @@
     <script type="text/javascript" src="index_m.js"></script>
 
     <script type="text/javascript">
+      var currentSettings = {};
       const brands = {
         peugeot: {
           brand: 'peugeot.com',
@@ -47,6 +48,7 @@
       // This will be called by the admin adapter when the settings page loads
       function load(settings, onChange) {
         // example: select elements with id=key and class=value and insert value
+        currentSettings = settings && typeof settings === 'object' ? { ...settings } : {};
         if (!settings) return;
         $('.value').each(function () {
           var $key = $(this);
@@ -118,7 +120,8 @@
       // This will be called by the admin adapter when the user presses the save button
       function save(callback) {
         // example: select elements with class=value and build settings object
-        var obj = {};
+        // Preserve legacy and future native settings that are not shown in this form.
+        var obj = { ...currentSettings };
         $('.value').each(function () {
           var $this = $(this);
           if ($this.attr('type') === 'checkbox') {
