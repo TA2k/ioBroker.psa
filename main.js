@@ -72,7 +72,7 @@ class Psa extends utils.Adapter {
         siteCode: "OP_DE_ESP",
         shortBrand: "OP",
         url: "mw-op-rp.mym.awsmpsa.com",
-        redirectUri: "mymop://oauth2redirect/de",
+        redirectUri: "mymopsdk://oauth2redirect/de",
       },
     };
   }
